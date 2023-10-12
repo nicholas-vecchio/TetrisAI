@@ -33,18 +33,14 @@ def draw_grid():
                 color = COLORS[grid[y][x] - 1]  # Adjust the index if needed
                 pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
-
 def main():
     running = True
     current_tetromino = random.choice(tetrominoes)
     current_rotation = 0
     tetromino_x, tetromino_y = GRID_WIDTH // 2, 0
     score = 0
-
-    move_tetromino = False  # Flag to control tetromino movement
-
-    # Set the initial FALL_EVENT timer (e.g., every 500 milliseconds)
-    pygame.time.set_timer(FALL_EVENT, 500)
+    fall_delay = 500  # Initial delay between tetromino falls (milliseconds)
+    fall_timer = pygame.time.get_ticks()
 
     while running:
         screen.fill(WHITE)
@@ -60,22 +56,20 @@ def main():
                     if is_valid_move(current_tetromino[current_rotation], tetromino_x + 1, tetromino_y):
                         tetromino_x += 1
                 elif event.key == pygame.K_DOWN:
-                    if is_valid_move(current_tetromino[current_rotation], tetromino_x, tetromino_y + 1):
-                        tetromino_y += 1
-                        pygame.time.set_timer(FALL_EVENT, 500)
+                    fall_delay = 50  # Adjust this value to control the speed of continuous movement down
                 elif event.key == pygame.K_UP:
                     next_rotation = (current_rotation + 1) % len(current_tetromino)
                     if is_valid_move(current_tetromino[next_rotation], tetromino_x, tetromino_y):
                         current_rotation = next_rotation
 
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_DOWN:
+                    fall_delay = 500  # Reset the fall delay when the key is released
 
-
-            # Handle the FALL_EVENT
-            if event.type == FALL_EVENT:
-                move_tetromino = True
-
-        # Check if it's time to move the tetromino
-        if move_tetromino:
+        # Handle tetromino falling
+        current_time = pygame.time.get_ticks()
+        if current_time - fall_timer > fall_delay:
+            fall_timer = current_time
             if is_valid_move(current_tetromino[current_rotation], tetromino_x, tetromino_y + 1):
                 tetromino_y += 1
             else:
@@ -85,7 +79,6 @@ def main():
                 tetromino_x, tetromino_y = GRID_WIDTH // 2, 0
                 if not is_valid_move(current_tetromino[current_rotation], tetromino_x, tetromino_y):
                     running = False
-            move_tetromino = False  # Reset the flag
 
         lines_cleared = clear_complete_lines()
         if lines_cleared:
