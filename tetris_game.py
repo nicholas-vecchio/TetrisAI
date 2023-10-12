@@ -60,7 +60,7 @@ def main():
                     if is_valid_move(current_tetromino[current_rotation], tetromino_x + 1, tetromino_y):
                         tetromino_x += 1
                 elif event.key == pygame.K_DOWN:
-                    if is_valid_move(current_tetromino[current_rotation], tetromino_x, tetromino_y+1):
+                    if is_valid_move(current_tetromino[current_rotation], tetromino_x, tetromino_y + 1):
                         tetromino_y += 1
                         pygame.time.set_timer(FALL_EVENT, 500)
                 elif event.key == pygame.K_UP:
