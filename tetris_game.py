@@ -9,7 +9,7 @@ pygame.init()
 # Constants
 PADDING = 50
 CELL_SIZE = 30
-SCREEN_WIDTH = GRID_WIDTH * CELL_SIZE + 2 * PADDING
+SCREEN_WIDTH = GRID_WIDTH * CELL_SIZE + 2 * PADDING + (10 * CELL_SIZE)
 SCREEN_HEIGHT = GRID_HEIGHT * CELL_SIZE + PADDING
 
 
@@ -51,7 +51,6 @@ def drop_tetromino(tetromino, x, y):
     while is_valid_move(tetromino, x, y + 1):
         y += 1
         drop_distance += 1
-
     # Find the base tetromino that matches the current one
     matching_tetromino = next((t for t in tetrominoes if tetromino in t), None)
 
@@ -59,6 +58,27 @@ def drop_tetromino(tetromino, x, y):
         place_tetromino_on_grid(tetromino, x, y, tetrominoes.index(matching_tetromino) + 1)
     
     return GRID_WIDTH // 2, 0, drop_distance
+
+def draw_held_tetromino_box(tetromino):
+    if not tetromino:  # If there's no held tetromino, just return
+        return
+
+    box_start_x = GRID_WIDTH * CELL_SIZE + 2 * PADDING
+    box_start_y = PADDING
+    box_width = 4 * CELL_SIZE  # Adjust these values to control the size of the box
+    box_height = 4 * CELL_SIZE
+
+    pygame.draw.rect(screen, (0, 0, 0), (box_start_x, box_start_y, box_width, box_height), 2)  # Draw the box
+
+    # Compute offsets to center the tetromino in the box
+    tetromino_width = max(block[0] for block in tetromino[0]) - min(block[0] for block in tetromino[0]) + 1
+    tetromino_height = max(block[1] for block in tetromino[0]) - min(block[1] for block in tetromino[0]) + 1
+    offset_x = (4 - tetromino_width) / 2
+    offset_y = (4 - tetromino_height) / 2
+
+    for block in tetromino[0]:  # We'll use the default rotation for display
+        color = COLORS[tetrominoes.index(tetromino) % len(COLORS)]
+        pygame.draw.rect(screen, color, ((box_start_x + (block[0] + offset_x) * CELL_SIZE), (box_start_y + (block[1] + offset_y) * CELL_SIZE), CELL_SIZE, CELL_SIZE))
 
 
 
@@ -112,7 +132,8 @@ def main():
                 elif event.key == pygame.K_SPACE:
                     drop_dist = 0
                     tetromino_x, tetromino_y, drop_dist = drop_tetromino(current_tetromino[current_rotation], tetromino_x, tetromino_y)
-                    held_tetromino, current_tetromino = current_tetromino, next_tetromino
+                    switched_this_drop = False
+                    current_tetromino = next_tetromino
                     if not bag:
                         bag = generate_bag()
                     next_tetromino = bag.pop()
@@ -162,6 +183,7 @@ def main():
 
         draw_tetromino(current_tetromino[current_rotation], tetromino_x, tetromino_y, COLORS[tetrominoes.index(current_tetromino) % len(COLORS)])
         draw_grid()
+        draw_held_tetromino_box(held_tetromino)
 
         score_text = font.render(f'Score: {score}', True, (0, 0, 0))  # Render the score with black color
         score_pos = (SCREEN_WIDTH - score_text.get_width() - 10, 10)  # Position to display at top right, 10 pixels from the edge
