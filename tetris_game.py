@@ -78,8 +78,34 @@ def draw_held_tetromino_box(tetromino):
 
     for block in tetromino[0]:  # We'll use the default rotation for display
         color = COLORS[tetrominoes.index(tetromino) % len(COLORS)]
+        draw_box_label(box_start_x, box_start_y - FONT_SIZE - 10, "Held")
         pygame.draw.rect(screen, color, ((box_start_x + (block[0] + offset_x) * CELL_SIZE), (box_start_y + (block[1] + offset_y) * CELL_SIZE), CELL_SIZE, CELL_SIZE))
 
+def draw_next_tetromino_box(tetromino):
+    if not tetromino:  # If there's no next tetromino, just return
+        return
+
+    box_start_x = GRID_WIDTH * CELL_SIZE + 2 * PADDING
+    box_start_y = 2 * PADDING + 4 * CELL_SIZE  # Below the held tetromino box
+    box_width = 4 * CELL_SIZE  # Adjust these values to control the size of the box
+    box_height = 4 * CELL_SIZE
+
+    pygame.draw.rect(screen, (0, 0, 0), (box_start_x, box_start_y, box_width, box_height), 2)  # Draw the box
+
+    # Compute offsets to center the tetromino in the box
+    tetromino_width = max(block[0] for block in tetromino[0]) - min(block[0] for block in tetromino[0]) + 1
+    tetromino_height = max(block[1] for block in tetromino[0]) - min(block[1] for block in tetromino[0]) + 1
+    offset_x = (4 - tetromino_width) / 2
+    offset_y = (4 - tetromino_height) / 2
+
+    for block in tetromino[0]:  # We'll use the default rotation for display
+        color = COLORS[tetrominoes.index(tetromino) % len(COLORS)]
+        draw_box_label(box_start_x, box_start_y - FONT_SIZE - 10, "Next")
+        pygame.draw.rect(screen, color, ((box_start_x + (block[0] + offset_x) * CELL_SIZE), (box_start_y + (block[1] + offset_y) * CELL_SIZE), CELL_SIZE, CELL_SIZE))
+
+def draw_box_label(x, y, text):
+    label = font.render(text, True, (0, 0, 0))  # Render the label with black color
+    screen.blit(label, (x, y))  # Draw the rendered text on the screen
 
 
 def main():
@@ -184,6 +210,7 @@ def main():
         draw_tetromino(current_tetromino[current_rotation], tetromino_x, tetromino_y, COLORS[tetrominoes.index(current_tetromino) % len(COLORS)])
         draw_grid()
         draw_held_tetromino_box(held_tetromino)
+        draw_next_tetromino_box(next_tetromino)
 
         score_text = font.render(f'Score: {score}', True, (0, 0, 0))  # Render the score with black color
         score_pos = (SCREEN_WIDTH - score_text.get_width() - 10, 10)  # Position to display at top right, 10 pixels from the edge
