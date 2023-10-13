@@ -11,7 +11,6 @@ CELL_SIZE = 30
 SCREEN_WIDTH = GRID_WIDTH * CELL_SIZE
 SCREEN_HEIGHT = GRID_HEIGHT * CELL_SIZE
 
-# Colors (Red, Green, Blue)
 WHITE = (255, 255, 255)
 COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255), (255, 0, 255), (128, 128, 128)]
 
@@ -21,6 +20,9 @@ pygame.display.set_caption("Tetris")
 clock = pygame.time.Clock()
 
 FALL_EVENT = pygame.USEREVENT + 1
+
+def generate_bag():
+    return random.sample(tetrominoes, len(tetrominoes))
 
 def draw_tetromino(tetromino, x, y, color):
     for block in tetromino:
@@ -35,7 +37,9 @@ def draw_grid():
 
 def main():
     running = True
-    current_tetromino = random.choice(tetrominoes)
+    bag = generate_bag()
+    current_tetromino = bag.pop()
+    next_tetromino = bag.pop()
     current_rotation = 0
     tetromino_x, tetromino_y = GRID_WIDTH // 2, 0
     score = 0
@@ -74,7 +78,10 @@ def main():
                 tetromino_y += 1
             else:
                 place_tetromino_on_grid(current_tetromino[current_rotation], tetromino_x, tetromino_y, tetrominoes.index(current_tetromino) + 1)
-                current_tetromino = random.choice(tetrominoes)
+                current_tetromino = next_tetromino
+                if not bag:
+                    bag = generate_bag()
+                next_tetromino = bag.pop()
                 current_rotation = 0
                 tetromino_x, tetromino_y = GRID_WIDTH // 2, 0
                 if not is_valid_move(current_tetromino[current_rotation], tetromino_x, tetromino_y):
