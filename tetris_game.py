@@ -19,8 +19,6 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Tetris")
 clock = pygame.time.Clock()
 
-FALL_EVENT = pygame.USEREVENT + 1
-
 def generate_bag():
     return random.sample(tetrominoes, len(tetrominoes))
 
@@ -32,7 +30,7 @@ def draw_grid():
     for y in range(GRID_HEIGHT):
         for x in range(GRID_WIDTH):
             if grid[y][x] != 0:
-                color = COLORS[grid[y][x] - 1]  # Adjust the index if needed
+                color = COLORS[grid[y][x] - 1]
                 pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
 def main():
@@ -40,11 +38,13 @@ def main():
     bag = generate_bag()
     current_tetromino = bag.pop()
     next_tetromino = bag.pop()
+    held_tetromino = None
     current_rotation = 0
     tetromino_x, tetromino_y = GRID_WIDTH // 2, 0
     score = 0
-    fall_delay = 500  # Initial delay between tetromino falls (milliseconds)
+    fall_delay = 500
     fall_timer = pygame.time.get_ticks()
+    switched_this_drop = False
 
     while running:
         screen.fill(WHITE)
@@ -60,17 +60,28 @@ def main():
                     if is_valid_move(current_tetromino[current_rotation], tetromino_x + 1, tetromino_y):
                         tetromino_x += 1
                 elif event.key == pygame.K_DOWN:
-                    fall_delay = 50  # Adjust this value to control the speed of continuous movement down
+                    fall_delay = 50
                 elif event.key == pygame.K_UP:
                     next_rotation = (current_rotation + 1) % len(current_tetromino)
                     if is_valid_move(current_tetromino[next_rotation], tetromino_x, tetromino_y):
                         current_rotation = next_rotation
+                elif event.key == pygame.K_c:
+                    if not switched_this_drop:
+                        if not held_tetromino:
+                            held_tetromino, current_tetromino = current_tetromino, next_tetromino
+                            if not bag:
+                                bag = generate_bag()
+                            next_tetromino = bag.pop()
+                        else:
+                            held_tetromino, current_tetromino = current_tetromino, held_tetromino
+                        current_rotation = 0
+                        tetromino_x, tetromino_y = GRID_WIDTH // 2, 0
+                        switched_this_drop = True
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_DOWN:
-                    fall_delay = 500  # Reset the fall delay when the key is released
+                    fall_delay = 500
 
-        # Handle tetromino falling
         current_time = pygame.time.get_ticks()
         if current_time - fall_timer > fall_delay:
             fall_timer = current_time
@@ -79,6 +90,7 @@ def main():
             else:
                 place_tetromino_on_grid(current_tetromino[current_rotation], tetromino_x, tetromino_y, tetrominoes.index(current_tetromino) + 1)
                 current_tetromino = next_tetromino
+                switched_this_drop = False
                 if not bag:
                     bag = generate_bag()
                 next_tetromino = bag.pop()
@@ -92,7 +104,6 @@ def main():
             score += lines_cleared * 10
 
         draw_tetromino(current_tetromino[current_rotation], tetromino_x, tetromino_y, COLORS[tetrominoes.index(current_tetromino) % len(COLORS)])
-
         draw_grid()
         
         pygame.display.flip()
