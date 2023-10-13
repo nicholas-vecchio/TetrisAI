@@ -7,6 +7,13 @@ GRID_HEIGHT = 20
 # Initialize the grid with all zeros (empty cells)
 grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
 
+def reset_grid():
+    global grid
+    for row in grid:
+        for i in range(len(row)):
+            row[i] = 0
+
+
 def is_valid_move(tetromino, x, y, rotation=None):
     if rotation is not None:
         tetromino = tetromino[rotation]
