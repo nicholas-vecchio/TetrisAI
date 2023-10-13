@@ -7,6 +7,8 @@ from tetris_pieces import tetrominoes, generate_bag
 from DQN import DQNAgent
 from tetris_ai import generate_state, apply_action, compute_reward
 
+# TODO: Implement multiple episodes/runs before closing
+# TODO: Implement actual training
 def main():
     pygame.init()
     running = True
