@@ -1,5 +1,6 @@
 import pygame
 import random
+import torch
 from tetris_constants import screen, WHITE, COLORS, font, SCREEN_WIDTH, clock, ACTIONS
 from tetris_rendering import draw_grid, draw_grid_background, draw_held_tetromino_box, draw_next_tetromino_box, draw_tetromino
 from tetris_grid import GRID_WIDTH, is_valid_move, place_tetromino_on_grid, clear_complete_lines, grid
@@ -12,10 +13,13 @@ from tetris_ai import generate_state, apply_action, compute_reward
 # TODO: Implement ability to toggle visuals
 # TODO: Add reward on screen
 # TODO: Add reward into code.
-def main():
+# TODO: Fix collision its still rotating/placing blocks inside each other (possibly cause hard drop. make AI unable to rotate after a hard drop)
+# TODO: add scoring for hard drops/soft drops too maybe
+# TODO: Reset game board after losing/check for game over
+
+def main(agent):
     pygame.init()
     running = True
-    agent = DQNAgent()
     bag = generate_bag()
     current_tetromino = bag.pop()
     next_tetromino = bag.pop()
@@ -49,11 +53,7 @@ def main():
         action = valid_action if valid_action else random.choice(ACTIONS)  # Use a random action if no valid action is found
         new_state = apply_action(current_tetromino, action, state, next_tetromino, bag)
         has_held = new_state["has_held"]
-        print("AI Decision:", action)
-        print("Resulting State:", new_state)
         tetromino_x, tetromino_y, current_rotation = new_state['tetromino_position'][0], new_state['tetromino_position'][1], new_state['tetromino_rotation']
-        print("Tetromino Position:", tetromino_x, tetromino_y)
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -63,13 +63,11 @@ def main():
             fall_timer = current_time
             if is_valid_move(current_tetromino, tetromino_x, tetromino_y + 1, current_rotation):
                 tetromino_y += 1
-                print("Tetromino Moved Down To:", tetromino_y)
                 if(fall_delay == 50):
                     score += 1
             else:
                 place_tetromino_on_grid(current_tetromino[current_rotation], tetromino_x, tetromino_y, tetrominoes.index(current_tetromino) + 1)
                 has_held = False
-                print("Placed Tetromino at Position:", tetromino_x, tetromino_y, "Rotation:", current_rotation)
                 current_tetromino = next_tetromino
                 if not bag:
                     bag = generate_bag()
@@ -105,7 +103,17 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print("Error:", e)
+    pygame.init()
+    agent = DQNAgent()
+    num_episodes = 1000
+
+    for episode in range(num_episodes):
+        try:
+            score = main(agent)
+            print(f"Episode {episode + 1} Score: {score}")
+
+            if episode % 50 == 0:
+                torch.save(agent.qnetwork.state_dict(), f"tetris_weights_episode_{episode}.pth")
+
+        except Exception as e:
+            print(f"Error in episode {episode}:", e)

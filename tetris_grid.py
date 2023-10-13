@@ -13,15 +13,12 @@ def is_valid_move(tetromino, x, y, rotation=None):
     
     for block in tetromino:
         # Check boundaries
-        print("Debug before boundaries: block:", block, "x:", x, "y:", y)
         if x + block[0] < 0 or x + block[0] >= GRID_WIDTH:
             return False
         if y + block[1] < 0 or y + block[1] >= GRID_HEIGHT:
             return False
         
         # Check grid collision
-        print("Debug before grid collision: block:", block, "x:", x, "y:", y)
-        print("Debug grid check: grid[y + block[1]]:", grid[y + block[1]], "x + block[0]:", x + block[0])
         if grid[y + block[1]][x + block[0]] != 0:
             return False
     return True
