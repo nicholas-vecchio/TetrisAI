@@ -22,15 +22,16 @@ def draw_grid_background():
         pygame.draw.line(screen, (200, 200, 200), (x * CELL_SIZE + PADDING, PADDING), (x * CELL_SIZE + PADDING, GRID_HEIGHT * CELL_SIZE + PADDING))
 
 def draw_held_tetromino_box(tetromino):
-    if not tetromino:  # If there's no held tetromino, just return
-        return
-
     box_start_x = GRID_WIDTH * CELL_SIZE + 2 * PADDING
     box_start_y = PADDING
     box_width = 4 * CELL_SIZE  # Adjust these values to control the size of the box
     box_height = 4 * CELL_SIZE
 
-    pygame.draw.rect(screen, (0, 0, 0), (box_start_x, box_start_y, box_width, box_height), 2)  # Draw the box
+    pygame.draw.rect(screen, (0, 0, 0), (box_start_x, box_start_y, box_width, box_height), 2)  # Always draw the box
+    draw_box_label(box_start_x, box_start_y - FONT_SIZE - 10, box_width, "Held")
+
+    if not tetromino:  # If there's no held tetromino, just return after drawing the empty box
+        return
 
     # Compute offsets to center the tetromino in the box
     tetromino_width = max(block[0] for block in tetromino[0]) - min(block[0] for block in tetromino[0]) + 1
@@ -40,8 +41,8 @@ def draw_held_tetromino_box(tetromino):
 
     for block in tetromino[0]:  # We'll use the default rotation for display
         color = COLORS[tetrominoes.index(tetromino) % len(COLORS)]
-        draw_box_label(box_start_x, box_start_y - FONT_SIZE - 10, box_width, "Held")
         pygame.draw.rect(screen, color, ((box_start_x + (block[0] + offset_x) * CELL_SIZE), (box_start_y + (block[1] + offset_y) * CELL_SIZE), CELL_SIZE, CELL_SIZE))
+
 
 def draw_next_tetromino_box(tetromino):
     if not tetromino:  # If there's no next tetromino, just return
