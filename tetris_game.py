@@ -1,9 +1,9 @@
 import pygame
 import random
 import torch
-from tetris_constants import screen, WHITE, COLORS, font, SCREEN_WIDTH, clock, ACTIONS
+from tetris_constants import screen, WHITE, COLORS, font, SCREEN_WIDTH, clock, ACTIONS, GRID_HEIGHT
 from tetris_rendering import draw_grid, draw_grid_background, draw_held_tetromino_box, draw_next_tetromino_box, draw_tetromino
-from tetris_grid import GRID_WIDTH, is_valid_move, place_tetromino_on_grid, clear_complete_lines, grid
+from tetris_grid import GRID_WIDTH, is_valid_move, place_tetromino_on_grid, clear_complete_lines, reset_grid, grid
 from tetris_pieces import tetrominoes, generate_bag
 from DQN import DQNAgent
 from tetris_ai import generate_state, apply_action, compute_reward
@@ -15,7 +15,6 @@ from tetris_ai import generate_state, apply_action, compute_reward
 # TODO: Add reward into code.
 # TODO: Fix collision its still rotating/placing blocks inside each other (possibly cause hard drop. make AI unable to rotate after a hard drop)
 # TODO: add scoring for hard drops/soft drops too maybe
-# TODO: Reset game board after losing/check for game over
 
 def main(agent):
     pygame.init()
@@ -32,6 +31,7 @@ def main(agent):
     level = 0
     lines_cleared_total = 0
     has_held = False
+    reset_grid()
 
     while running:
         screen.fill(WHITE)
@@ -39,7 +39,6 @@ def main(agent):
 
         # AI Decision Making
         state = generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held)
-        
         valid_action = None
         attempts = 0
         while valid_action is None and attempts < 10:
