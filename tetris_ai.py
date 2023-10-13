@@ -1,6 +1,6 @@
-from tetris_pieces import tetrominoes
-from tetris_constants import ACTIONS
-from tetris_grid import is_valid_move
+from tetris_pieces import tetrominoes, generate_bag
+from tetris_constants import ACTIONS, GRID_WIDTH
+from tetris_grid import is_valid_move, place_tetromino_on_grid
 
 def compute_reward(old_state, new_state, game_over):
     reward = 0
@@ -39,8 +39,7 @@ def compute_reward(old_state, new_state, game_over):
     return reward
 
 
-def generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino):
-    # 1. Grid State:
+def generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, held_tetromino=None, has_held=False):    # 1. Grid State:
     grid_state = [cell for row in grid for cell in row]
 
     # 2. Current Tetromino State:
@@ -57,12 +56,15 @@ def generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_ro
         "tetromino_type": tetromino_type,
         "tetromino_position": tetromino_position,
         "tetromino_rotation": tetromino_rotation,
-        "next_tetromino_type": next_tetromino_type
+        "next_tetromino_type": next_tetromino_type,
+        "held_tetromino": held_tetromino 
     }
+
+    state["has_held"] = has_held
 
     return state
 
-def apply_action(tetromino, action, state):
+def apply_action(tetromino, action, state, next_tetromino, bag):
     """
     Apply a specified action to a tetromino and returns the updated state.
     """
@@ -88,15 +90,27 @@ def apply_action(tetromino, action, state):
             new_state['tetromino_position'] = (new_state['tetromino_position'][0], new_state['tetromino_position'][1] + 1)
 
     elif move == 'HARD_DROP':
+        x = new_state['tetromino_position'][0]
         y = new_state['tetromino_position'][1]
-        while is_valid_move(rotated_tetromino, new_state['tetromino_position'][0], y + 1):
+        while is_valid_move(rotated_tetromino, x, y + 1):
             y += 1
-        new_state['tetromino_position'] = (new_state['tetromino_position'][0], y)
+        new_state['tetromino_position'] = (x, y)
 
     elif move == 'HOLD':
-        # Here you will need to implement the logic for the hold action.
-        # Generally, this swaps the current tetromino with the held one.
-        new_state['held_tetromino'], tetromino = tetromino, new_state['held_tetromino']
+        # Check if the tetromino has been held during this fall
+        if not new_state["has_held"]:
+            if new_state['held_tetromino'] is None:
+                new_state['held_tetromino'] = tetromino
+                tetromino = next_tetromino
+                if not bag:
+                    bag = generate_bag()
+                next_tetromino = bag.pop()
+            else:
+                new_state['held_tetromino'], tetromino = tetromino, new_state['held_tetromino']
+
+            new_state['tetromino_position'] = (GRID_WIDTH // 2, 0)
+            new_state['tetromino_rotation'] = 0
+            new_state["has_held"] = True 
 
     new_state['tetromino_rotation'] = rotation
 

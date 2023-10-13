@@ -12,8 +12,8 @@ from tetris_constants import GRID_WIDTH, ACTIONS
 
 class DQNAgent:
     def __init__(self):
-        self.qnetwork = QNetwork(GRID_WIDTH * GRID_WIDTH, len(ACTIONS)).to(device)
-        self.target_network = QNetwork(GRID_WIDTH * GRID_WIDTH, len(ACTIONS)).to(device)
+        self.qnetwork = QNetwork().to(device)
+        self.target_network = QNetwork().to(device)
         self.target_network.load_state_dict(self.qnetwork.state_dict())
         self.optimizer = optim.Adam(self.qnetwork.parameters(), lr=0.001)
         self.memory = ReplayMemory(10000)

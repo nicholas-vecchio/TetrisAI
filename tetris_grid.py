@@ -7,15 +7,21 @@ GRID_HEIGHT = 20
 # Initialize the grid with all zeros (empty cells)
 grid = [[0 for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
 
-
-def is_valid_move(tetromino, x, y):
+def is_valid_move(tetromino, x, y, rotation=None):
+    if rotation is not None:
+        tetromino = tetromino[rotation]
+    
     for block in tetromino:
         # Check boundaries
+        print("Debug before boundaries: block:", block, "x:", x, "y:", y)
         if x + block[0] < 0 or x + block[0] >= GRID_WIDTH:
             return False
         if y + block[1] < 0 or y + block[1] >= GRID_HEIGHT:
             return False
+        
         # Check grid collision
+        print("Debug before grid collision: block:", block, "x:", x, "y:", y)
+        print("Debug grid check: grid[y + block[1]]:", grid[y + block[1]], "x + block[0]:", x + block[0])
         if grid[y + block[1]][x + block[0]] != 0:
             return False
     return True

@@ -1,3 +1,8 @@
+import random
+
+def generate_bag():
+    return random.sample(tetrominoes, len(tetrominoes))
+
 # L Tetromino
 L_SHAPE = [
     [(2, 0), (0, 1), (1, 1), (2, 1)],
