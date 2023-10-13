@@ -35,13 +35,25 @@ def draw_grid():
                 color = COLORS[grid[y][x] - 1]
                 pygame.draw.rect(screen, color, (x * CELL_SIZE + PADDING, y * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE))
 
-
 def draw_grid_background():
     for y in range(GRID_HEIGHT + 1):  # +1 to ensure we draw the bottom-most horizontal line
         pygame.draw.line(screen, (200, 200, 200), (PADDING, y * CELL_SIZE + PADDING), (GRID_WIDTH * CELL_SIZE + PADDING, y * CELL_SIZE + PADDING))
 
     for x in range(GRID_WIDTH + 1):  # +1 to ensure we draw the right-most vertical line
         pygame.draw.line(screen, (200, 200, 200), (x * CELL_SIZE + PADDING, PADDING), (x * CELL_SIZE + PADDING, GRID_HEIGHT * CELL_SIZE + PADDING))
+
+def drop_tetromino(tetromino, x, y):
+    while is_valid_move(tetromino, x, y + 1):
+        y += 1
+
+    # Find the base tetromino that matches the current one
+    matching_tetromino = next((t for t in tetrominoes if tetromino in t), None)
+
+    if matching_tetromino is not None:
+        place_tetromino_on_grid(tetromino, x, y, tetrominoes.index(matching_tetromino) + 1)
+    
+    return GRID_WIDTH // 2, 0
+
 
 
 def main():
@@ -60,7 +72,7 @@ def main():
     while running:
         screen.fill(WHITE)
         draw_grid_background()
-
+        # Quit and Keyboard Events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -89,12 +101,19 @@ def main():
                         current_rotation = 0
                         tetromino_x, tetromino_y = GRID_WIDTH // 2, 0
                         switched_this_drop = True
+                elif event.key == pygame.K_SPACE:
+                    tetromino_x, tetromino_y = drop_tetromino(current_tetromino[current_rotation], tetromino_x, tetromino_y)
+                    held_tetromino, current_tetromino = current_tetromino, next_tetromino
+                    if not bag:
+                        bag = generate_bag()
+                    next_tetromino = bag.pop()
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_DOWN:
                     fall_delay = 500
 
         current_time = pygame.time.get_ticks()
+        # Piece falling logic
         if current_time - fall_timer > fall_delay:
             fall_timer = current_time
             if is_valid_move(current_tetromino[current_rotation], tetromino_x, tetromino_y + 1):
@@ -112,6 +131,7 @@ def main():
                     running = False
 
         lines_cleared = clear_complete_lines()
+        # Score logic
         if lines_cleared:
             score += lines_cleared * 10
 
