@@ -7,9 +7,11 @@ from tetris_pieces import tetrominoes
 pygame.init()
 
 # Constants
+PADDING = 50
 CELL_SIZE = 30
-SCREEN_WIDTH = GRID_WIDTH * CELL_SIZE
-SCREEN_HEIGHT = GRID_HEIGHT * CELL_SIZE
+SCREEN_WIDTH = GRID_WIDTH * CELL_SIZE + 2 * PADDING
+SCREEN_HEIGHT = GRID_HEIGHT * CELL_SIZE + PADDING
+
 
 WHITE = (255, 255, 255)
 COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255), (255, 0, 255), (128, 128, 128)]
@@ -24,14 +26,23 @@ def generate_bag():
 
 def draw_tetromino(tetromino, x, y, color):
     for block in tetromino:
-        pygame.draw.rect(screen, color, ((x + block[0]) * CELL_SIZE, (y + block[1]) * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+        pygame.draw.rect(screen, color, ((x + block[0]) * CELL_SIZE + PADDING, (y + block[1]) * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE))
 
 def draw_grid():
     for y in range(GRID_HEIGHT):
         for x in range(GRID_WIDTH):
             if grid[y][x] != 0:
                 color = COLORS[grid[y][x] - 1]
-                pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+                pygame.draw.rect(screen, color, (x * CELL_SIZE + PADDING, y * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE))
+
+
+def draw_grid_background():
+    for y in range(GRID_HEIGHT + 1):  # +1 to ensure we draw the bottom-most horizontal line
+        pygame.draw.line(screen, (200, 200, 200), (PADDING, y * CELL_SIZE + PADDING), (GRID_WIDTH * CELL_SIZE + PADDING, y * CELL_SIZE + PADDING))
+
+    for x in range(GRID_WIDTH + 1):  # +1 to ensure we draw the right-most vertical line
+        pygame.draw.line(screen, (200, 200, 200), (x * CELL_SIZE + PADDING, PADDING), (x * CELL_SIZE + PADDING, GRID_HEIGHT * CELL_SIZE + PADDING))
+
 
 def main():
     running = True
@@ -48,6 +59,7 @@ def main():
 
     while running:
         screen.fill(WHITE)
+        draw_grid_background()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
