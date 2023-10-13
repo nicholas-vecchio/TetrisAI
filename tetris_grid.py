@@ -20,7 +20,6 @@ def is_valid_move(tetromino, x, y):
             return False
     return True
 
-
 def place_tetromino_on_grid(tetromino, x, y, tetromino_id):
     for block in tetromino:
         grid_x = x + block[0]
