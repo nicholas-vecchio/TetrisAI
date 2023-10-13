@@ -78,7 +78,7 @@ def draw_held_tetromino_box(tetromino):
 
     for block in tetromino[0]:  # We'll use the default rotation for display
         color = COLORS[tetrominoes.index(tetromino) % len(COLORS)]
-        draw_box_label(box_start_x, box_start_y - FONT_SIZE - 10, "Held")
+        draw_box_label(box_start_x, box_start_y - FONT_SIZE - 10, box_width, "Held")
         pygame.draw.rect(screen, color, ((box_start_x + (block[0] + offset_x) * CELL_SIZE), (box_start_y + (block[1] + offset_y) * CELL_SIZE), CELL_SIZE, CELL_SIZE))
 
 def draw_next_tetromino_box(tetromino):
@@ -100,13 +100,14 @@ def draw_next_tetromino_box(tetromino):
 
     for block in tetromino[0]:  # We'll use the default rotation for display
         color = COLORS[tetrominoes.index(tetromino) % len(COLORS)]
-        draw_box_label(box_start_x, box_start_y - FONT_SIZE - 10, "Next")
+        draw_box_label(box_start_x, box_start_y - FONT_SIZE - 10, box_width, "Next")
         pygame.draw.rect(screen, color, ((box_start_x + (block[0] + offset_x) * CELL_SIZE), (box_start_y + (block[1] + offset_y) * CELL_SIZE), CELL_SIZE, CELL_SIZE))
 
-def draw_box_label(x, y, text):
+def draw_box_label(x, y, box_width, text):
     label = font.render(text, True, (0, 0, 0))  # Render the label with black color
-    screen.blit(label, (x, y))  # Draw the rendered text on the screen
-
+    label_width = label.get_width()
+    centered_x = x + (box_width - label_width) / 2  # Centering the label
+    screen.blit(label, (centered_x, y))  # Draw the rendered text on the screen
 
 def main():
     running = True
