@@ -9,6 +9,9 @@ from tetris_ai import generate_state, apply_action, compute_reward
 
 # TODO: Implement multiple episodes/runs before closing
 # TODO: Implement actual training
+# TODO: Implement ability to toggle visuals
+# TODO: Add reward on screen
+# TODO: Add reward into code.
 def main():
     pygame.init()
     running = True
