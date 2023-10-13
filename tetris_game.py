@@ -129,7 +129,6 @@ def main():
         score_pos = (SCREEN_WIDTH - score_text.get_width() - 10, 10)  # Position to display at top right, 10 pixels from the edge
         screen.blit(score_text, score_pos)  # Draw the rendered score on the screen
 
-        
         pygame.display.flip()
         clock.tick(60)
 

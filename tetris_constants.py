@@ -22,3 +22,9 @@ font = pygame.font.Font('./Utils/Font/Helvetica.ttf', FONT_SIZE)
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Tetris")
 clock = pygame.time.Clock()
+
+# Define a set of actions
+MOVE_ACTIONS = ['LEFT', 'RIGHT', 'SOFT_DROP', 'HARD_DROP', 'HOLD']
+ROTATIONS = [0, 1, 2, 3]  # Assuming max 4 rotations as usual for Tetris pieces
+
+ACTIONS = [(move, rot) for move in MOVE_ACTIONS for rot in ROTATIONS]
