@@ -18,7 +18,7 @@ COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255), (
 
 # Font
 FONT_SIZE = 30
-font = pygame.font.Font(None, FONT_SIZE)  # Use the default Pygame font
+font = pygame.font.Font('./Utils/Font/Helvetica.ttf', FONT_SIZE)
 
 # Create the screen and clock objects
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
