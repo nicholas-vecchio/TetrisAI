@@ -39,7 +39,7 @@ def compute_reward(old_state, new_state, game_over):
     return reward
 
 
-def generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, held_tetromino=None, has_held=False):    # 1. Grid State:
+def generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held, held_tetromino=None):    # 1. Grid State:
     grid_state = [cell for row in grid for cell in row]
 
     # 2. Current Tetromino State:

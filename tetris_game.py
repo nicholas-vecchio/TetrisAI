@@ -1,5 +1,6 @@
 import pygame
-from tetris_constants import screen, WHITE, COLORS, font, SCREEN_WIDTH, clock
+import random
+from tetris_constants import screen, WHITE, COLORS, font, SCREEN_WIDTH, clock, ACTIONS
 from tetris_rendering import draw_grid, draw_grid_background, draw_held_tetromino_box, draw_next_tetromino_box, draw_tetromino
 from tetris_grid import GRID_WIDTH, is_valid_move, place_tetromino_on_grid, clear_complete_lines, grid
 from tetris_pieces import tetrominoes, generate_bag
@@ -21,15 +22,28 @@ def main():
     fall_timer = pygame.time.get_ticks()
     level = 0
     lines_cleared_total = 0
+    has_held = False
 
     while running:
         screen.fill(WHITE)
         draw_grid_background()
 
         # AI Decision Making
-        state = generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino)
-        action = agent.act(state)
+        state = generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held)
+        
+        valid_action = None
+        attempts = 0
+        while valid_action is None and attempts < 10:
+            action = agent.act(state)
+            move, rotation = action
+            rotated_tetromino = current_tetromino[rotation]
+            if is_valid_move(rotated_tetromino, tetromino_x, tetromino_y):
+                valid_action = action
+            attempts += 1
+
+        action = valid_action if valid_action else random.choice(ACTIONS)  # Use a random action if no valid action is found
         new_state = apply_action(current_tetromino, action, state, next_tetromino, bag)
+        has_held = new_state["has_held"]
         print("AI Decision:", action)
         print("Resulting State:", new_state)
         tetromino_x, tetromino_y, current_rotation = new_state['tetromino_position'][0], new_state['tetromino_position'][1], new_state['tetromino_rotation']
@@ -38,8 +52,6 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
-
 
         current_time = pygame.time.get_ticks()
         if current_time - fall_timer > fall_delay:
@@ -86,7 +98,6 @@ def main():
         pygame.display.flip()
         clock.tick(60)
 
-    pygame.quit()
 
 if __name__ == "__main__":
     try:
