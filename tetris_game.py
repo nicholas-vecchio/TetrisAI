@@ -35,6 +35,11 @@ def main():
         tetromino_x, tetromino_y, current_rotation = new_state['tetromino_position'][0], new_state['tetromino_position'][1], new_state['tetromino_rotation']
         print("Tetromino Position:", tetromino_x, tetromino_y)
 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+
 
         current_time = pygame.time.get_ticks()
         if current_time - fall_timer > fall_delay:
