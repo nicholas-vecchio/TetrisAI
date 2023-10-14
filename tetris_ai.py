@@ -5,12 +5,13 @@ from tetris_grid import is_valid_move, place_tetromino_on_grid
 def compute_reward(old_state, new_state, game_over):
     reward = 0
 
-    # Reward for placing a piece
-    reward += 1
+    # Reshape the flattened grid into a 2D list
+    old_grid_2d = [old_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(old_state['grid']), GRID_WIDTH)]
+    new_grid_2d = [new_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(new_state['grid']), GRID_WIDTH)]
 
     # Calculate line clears
-    old_clears = sum(1 for row in old_state['grid'] if all(row))
-    new_clears = sum(1 for row in new_state['grid'] if all(row))
+    old_clears = sum(1 for row in old_grid_2d if all(row))
+    new_clears = sum(1 for row in new_grid_2d if all(row))
     line_clears = new_clears - old_clears
 
     if line_clears == 1:
@@ -23,13 +24,17 @@ def compute_reward(old_state, new_state, game_over):
         reward += 100
 
     # Penalize holes
-    holes = sum(1 for x in range(len(new_state['grid'][0])) 
-                for y in range(len(new_state['grid'])-1) 
-                if new_state['grid'][y][x] and not new_state['grid'][y+1][x])
+    # Reshape the flattened grid into a 2D matrix
+    grid_2d = [new_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(new_state['grid']), GRID_WIDTH)]
+
+    holes = sum(1 for x in range(len(grid_2d[0])) 
+                for y in range(len(grid_2d)-1) 
+                if grid_2d[y][x] and not grid_2d[y+1][x])
     reward -= 5 * holes
 
+
     # Penalize height
-    max_height = max(y for y in range(len(new_state['grid'])) if any(new_state['grid'][y]))
+    max_height = max((y for y in range(len(grid_2d)) if any(grid_2d[y])), default=0) #default if no blocks placed
     reward -= max_height
 
     # Game over penalty

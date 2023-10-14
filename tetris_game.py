@@ -98,6 +98,9 @@ def main(agent):
         score_pos = (SCREEN_WIDTH - score_text.get_width() - 10, 10)
         screen.blit(score_text, score_pos)
 
+        reward = compute_reward(state, new_state, not running)  # Assuming compute_reward is correctly implemented
+        agent.step(state, action, reward, new_state, not running)
+
         pygame.display.flip()
         clock.tick(60)
 

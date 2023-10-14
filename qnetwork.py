@@ -6,7 +6,7 @@ from tetris_constants import ACTIONS, GRID_WIDTH
 class QNetwork(nn.Module):
     def __init__(self):
         super(QNetwork, self).__init__()
-        self.fc1 = nn.Linear(GRID_WIDTH * GRID_WIDTH, 128)  # Adjust as necessary
+        self.fc1 = nn.Linear(200, 128)  # Adjusted from GRID_WIDTH * GRID_WIDTH to 200
         self.fc2 = nn.Linear(128, 64)
         self.fc3 = nn.Linear(64, len(ACTIONS))
 
