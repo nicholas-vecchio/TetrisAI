@@ -8,7 +8,7 @@ from tetris_pieces import tetrominoes, generate_bag
 from DQN import DQNAgent
 from tetris_ai import generate_state, apply_action, compute_reward
 
-# TODO: URGENT Fix collision its still rotating/placing blocks inside each other (possibly cause hard drop. make AI unable to rotate after a hard drop) Clipping onto ground and getting stuff in empty space in walls
+# TODO: URGENT Fix collision its still rotating/placing blocks inside each other. Clipping onto ground and getting stuff in empty space in walls
 # TODO: Implement ability to toggle visuals using variable (make it run faster)
 # TODO: add scoring for hard drops/soft drops too maybe
 # TODO: Re-add soft drop
@@ -62,7 +62,7 @@ def main(agent):
                 tetromino_y += 1
                 if(fall_delay == 50):
                     score += 1
-            else:
+            elif is_valid_move(current_tetromino, tetromino_x, tetromino_y, current_rotation):
                 place_tetromino_on_grid(current_tetromino[current_rotation], tetromino_x, tetromino_y, tetrominoes.index(current_tetromino) + 1)
                 has_held = False
                 current_tetromino = next_tetromino
