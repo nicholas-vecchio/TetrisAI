@@ -8,9 +8,10 @@ from tetris_pieces import tetrominoes, generate_bag
 from DQN import DQNAgent
 from tetris_ai import generate_state, apply_action, compute_reward
 
-# TODO: Fix bug where out of map tetromino doesnt end game UNKNOWN IF REMAINING
+# TODO: Fix bug where out of map tetromino doesnt end game
 # TODO: add scoring for hard drops/soft drops too maybe
 # TODO: Re-add soft drop
+# TODO: Parralelism?
 
 def main(agent):
     pygame.init()
@@ -29,6 +30,7 @@ def main(agent):
     has_held = False
     reset_grid()
     SHOW_VISUALS = True
+    tetromino_has_moved = False
 
     while running:
         if SHOW_VISUALS:
@@ -63,6 +65,7 @@ def main(agent):
             fall_timer = current_time
             if is_valid_move(current_tetromino, tetromino_x, tetromino_y + 1, current_rotation):
                 tetromino_y += 1
+                tetromino_has_moved = True
                 if(fall_delay == 50):
                     score += 1
             elif is_valid_move(current_tetromino, tetromino_x, tetromino_y, current_rotation):
@@ -76,6 +79,9 @@ def main(agent):
                 tetromino_x, tetromino_y = GRID_WIDTH // 2, 0
                 if not is_valid_move(current_tetromino, tetromino_x, tetromino_y, current_rotation):
                     running = False
+
+        if not is_valid_move(current_tetromino, tetromino_x, tetromino_y, current_rotation) and not tetromino_has_moved:            
+            running = False
 
         lines_cleared = clear_complete_lines()
         lines_cleared_total += lines_cleared
