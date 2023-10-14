@@ -63,7 +63,7 @@ def generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_ro
         "tetromino_position": tetromino_position,
         "tetromino_rotation": tetromino_rotation,
         "next_tetromino_type": next_tetromino_type,
-        "held_tetromino": held_tetromino 
+        "held_tetromino": held_tetromino
     }
 
     state["has_held"] = has_held
@@ -90,10 +90,6 @@ def apply_action(tetromino, action, state, next_tetromino, bag):
     elif move == 'RIGHT':
         if is_valid_move(rotated_tetromino, new_state['tetromino_position'][0] + 1, new_state['tetromino_position'][1]):
             new_state['tetromino_position'] = (new_state['tetromino_position'][0] + 1, new_state['tetromino_position'][1])
-    
-    elif move == 'SOFT_DROP':
-        if is_valid_move(rotated_tetromino, new_state['tetromino_position'][0], new_state['tetromino_position'][1] + 1):
-            new_state['tetromino_position'] = (new_state['tetromino_position'][0], new_state['tetromino_position'][1] + 1)
 
     elif move == 'HARD_DROP':
         x = new_state['tetromino_position'][0]
