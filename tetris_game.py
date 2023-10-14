@@ -8,9 +8,7 @@ from tetris_pieces import tetrominoes, generate_bag
 from DQN import DQNAgent
 from tetris_ai import generate_state, apply_action, compute_reward
 
-# TODO: Fix collision so it validates rotations
-# TODO: Fix bug where out of map tetromino doesnt end game
-# TODO: Implement ability to toggle visuals using variable (make it run faster)
+# TODO: Fix bug where out of map tetromino doesnt end game UNKNOWN IF REMAINING
 # TODO: add scoring for hard drops/soft drops too maybe
 # TODO: Re-add soft drop
 
@@ -30,10 +28,12 @@ def main(agent):
     lines_cleared_total = 0
     has_held = False
     reset_grid()
+    SHOW_VISUALS = True
 
     while running:
-        screen.fill(WHITE)
-        draw_grid_background()
+        if SHOW_VISUALS:
+            screen.fill(WHITE)
+            draw_grid_background()
 
         # AI Decision Making
         state = generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held, held_tetromino)
@@ -53,9 +53,10 @@ def main(agent):
         has_held = new_state["has_held"]
         current_tetromino, tetromino_x, tetromino_y, current_rotation, held_tetromino =  new_state['tetromino'], new_state['tetromino_position'][0], new_state['tetromino_position'][1], new_state['tetromino_rotation'], new_state['held_tetromino']
         
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        if SHOW_VISUALS:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
 
         current_time = pygame.time.get_ticks()
         if current_time - fall_timer > fall_delay:
@@ -87,11 +88,12 @@ def main(agent):
             score += (300 * (level + 1))
         elif lines_cleared == 4:
             score += (1200 * (level + 1))
-
-        draw_tetromino(current_tetromino[current_rotation], tetromino_x, tetromino_y, COLORS[tetrominoes.index(current_tetromino) % len(COLORS)])
-        draw_grid()
-        draw_held_tetromino_box(held_tetromino)
-        draw_next_tetromino_box(next_tetromino)
+        
+        if SHOW_VISUALS:
+            draw_tetromino(current_tetromino[current_rotation], tetromino_x, tetromino_y, COLORS[tetrominoes.index(current_tetromino) % len(COLORS)])
+            draw_grid()
+            draw_held_tetromino_box(held_tetromino)
+            draw_next_tetromino_box(next_tetromino)
 
         score_text = font.render(f'Score: {score}', True, (0, 0, 0))
         score_pos = (SCREEN_WIDTH - score_text.get_width() - 60, 10)
@@ -104,8 +106,9 @@ def main(agent):
         rewards_pos = (SCREEN_WIDTH - score_text.get_width() - 60, 50)
         screen.blit(reward_text, rewards_pos)
 
-        pygame.display.flip()
-        clock.tick(60)
+        if SHOW_VISUALS:
+            pygame.display.flip()
+            clock.tick(60)
 
     return score
 
