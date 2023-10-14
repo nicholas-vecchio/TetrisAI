@@ -8,7 +8,8 @@ from tetris_pieces import tetrominoes, generate_bag
 from DQN import DQNAgent
 from tetris_ai import generate_state, apply_action, compute_reward
 
-# TODO: URGENT Fix collision its still rotating/placing blocks inside each other. Clipping onto ground and getting stuff in empty space in walls
+# TODO: Fix collision so it validates rotations
+# TODO: Fix bug where out of map tetromino doesnt end game
 # TODO: Implement ability to toggle visuals using variable (make it run faster)
 # TODO: add scoring for hard drops/soft drops too maybe
 # TODO: Re-add soft drop
@@ -45,6 +46,7 @@ def main(agent):
             if is_valid_move(rotated_tetromino, tetromino_x, tetromino_y):
                 valid_action = action
             attempts += 1
+
 
         action = valid_action if valid_action else random.choice(ACTIONS)  # Use a random action if no valid action is found
         new_state = apply_action(current_tetromino, action, state, next_tetromino, bag)

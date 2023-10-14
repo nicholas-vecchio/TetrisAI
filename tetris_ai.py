@@ -81,6 +81,8 @@ def apply_action(tetromino, action, state, next_tetromino, bag):
 
     # Rotate the tetromino
     rotated_tetromino = tetromino[rotation]
+    if not is_valid_move(rotated_tetromino, state['tetromino_position'][0], state['tetromino_position'][1]):
+        rotation = state['tetromino_rotation']  # Revert to the original rotation if the new rotation is invalid
 
     # Handle different move actions
     if move == 'LEFT':
