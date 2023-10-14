@@ -15,6 +15,7 @@ from tetris_ai import generate_state, apply_action, compute_reward
 # TODO: Add reward into code.
 # TODO: Fix collision its still rotating/placing blocks inside each other (possibly cause hard drop. make AI unable to rotate after a hard drop)
 # TODO: add scoring for hard drops/soft drops too maybe
+# TODO: Re-add soft drop
 
 def main(agent):
     pygame.init()
