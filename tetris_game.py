@@ -38,7 +38,7 @@ def main(agent):
         draw_grid_background()
 
         # AI Decision Making
-        state = generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held)
+        state = generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held, held_tetromino)
         valid_action = None
         attempts = 0
         while valid_action is None and attempts < 10:
@@ -52,7 +52,7 @@ def main(agent):
         action = valid_action if valid_action else random.choice(ACTIONS)  # Use a random action if no valid action is found
         new_state = apply_action(current_tetromino, action, state, next_tetromino, bag)
         has_held = new_state["has_held"]
-        tetromino_x, tetromino_y, current_rotation = new_state['tetromino_position'][0], new_state['tetromino_position'][1], new_state['tetromino_rotation']
+        current_tetromino, tetromino_x, tetromino_y, current_rotation, held_tetromino =  new_state['tetromino'], new_state['tetromino_position'][0], new_state['tetromino_position'][1], new_state['tetromino_rotation'], new_state['held_tetromino']
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False

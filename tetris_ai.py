@@ -39,7 +39,7 @@ def compute_reward(old_state, new_state, game_over):
     return reward
 
 
-def generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held, held_tetromino=None):    # 1. Grid State:
+def generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held, held_tetromino):    # 1. Grid State:
     grid_state = [cell for row in grid for cell in row]
 
     # 2. Current Tetromino State:
@@ -53,6 +53,7 @@ def generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_ro
     # Combine into a single state dictionary
     state = {
         "grid": grid_state,
+        "tetromino": current_tetromino,
         "tetromino_type": tetromino_type,
         "tetromino_position": tetromino_position,
         "tetromino_rotation": tetromino_rotation,
@@ -110,6 +111,7 @@ def apply_action(tetromino, action, state, next_tetromino, bag):
 
             new_state['tetromino_position'] = (GRID_WIDTH // 2, 0)
             new_state['tetromino_rotation'] = 0
+            new_state['tetromino'] = tetromino
             new_state["has_held"] = True 
 
     new_state['tetromino_rotation'] = rotation
