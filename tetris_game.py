@@ -8,12 +8,8 @@ from tetris_pieces import tetrominoes, generate_bag
 from DQN import DQNAgent
 from tetris_ai import generate_state, apply_action, compute_reward
 
-# TODO: Implement multiple episodes/runs before closing
-# TODO: Implement actual training
+# TODO: URGENT Fix collision its still rotating/placing blocks inside each other (possibly cause hard drop. make AI unable to rotate after a hard drop) Clipping onto ground and getting stuff in empty space in walls
 # TODO: Implement ability to toggle visuals using variable (make it run faster)
-# TODO: Add reward on screen
-# TODO: Add reward into code.
-# TODO: Fix collision its still rotating/placing blocks inside each other (possibly cause hard drop. make AI unable to rotate after a hard drop)
 # TODO: add scoring for hard drops/soft drops too maybe
 # TODO: Re-add soft drop
 
@@ -96,11 +92,15 @@ def main(agent):
         draw_next_tetromino_box(next_tetromino)
 
         score_text = font.render(f'Score: {score}', True, (0, 0, 0))
-        score_pos = (SCREEN_WIDTH - score_text.get_width() - 10, 10)
+        score_pos = (SCREEN_WIDTH - score_text.get_width() - 60, 10)
         screen.blit(score_text, score_pos)
 
         reward = compute_reward(state, new_state, not running)  # Assuming compute_reward is correctly implemented
         agent.step(state, action, reward, new_state, not running)
+
+        reward_text = font.render(f'Reward: {reward}', True, (0, 0, 0))
+        rewards_pos = (SCREEN_WIDTH - score_text.get_width() - 60, 50)
+        screen.blit(reward_text, rewards_pos)
 
         pygame.display.flip()
         clock.tick(60)
