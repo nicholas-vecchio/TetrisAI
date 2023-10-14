@@ -53,6 +53,7 @@ def main(agent):
         new_state = apply_action(current_tetromino, action, state, next_tetromino, bag)
         has_held = new_state["has_held"]
         current_tetromino, tetromino_x, tetromino_y, current_rotation, held_tetromino =  new_state['tetromino'], new_state['tetromino_position'][0], new_state['tetromino_position'][1], new_state['tetromino_rotation'], new_state['held_tetromino']
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -100,6 +101,7 @@ def main(agent):
         pygame.display.flip()
         clock.tick(60)
 
+    return score
 
 if __name__ == "__main__":
     pygame.init()
