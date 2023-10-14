@@ -10,7 +10,7 @@ from tetris_ai import generate_state, apply_action, compute_reward
 
 # TODO: Implement multiple episodes/runs before closing
 # TODO: Implement actual training
-# TODO: Implement ability to toggle visuals
+# TODO: Implement ability to toggle visuals using variable (make it run faster)
 # TODO: Add reward on screen
 # TODO: Add reward into code.
 # TODO: Fix collision its still rotating/placing blocks inside each other (possibly cause hard drop. make AI unable to rotate after a hard drop)
