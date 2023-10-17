@@ -1,5 +1,7 @@
 import pygame
 
+SHOW_VISUALS = False
+
 # Initialization
 pygame.init()
 
@@ -19,9 +21,13 @@ FONT_SIZE = 30
 font = pygame.font.Font('./Utils/Font/Helvetica.ttf', FONT_SIZE)
 
 # Create the screen and clock objects
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Tetris")
-clock = pygame.time.Clock()
+if(SHOW_VISUALS):
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Tetris")
+    clock = pygame.time.Clock()
+else:
+    screen = None
+    clock = None
 
 # Define a set of actions
 MOVE_ACTIONS = ['LEFT', 'RIGHT', 'SOFT_DROP', 'HARD_DROP', 'HOLD']
