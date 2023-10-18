@@ -2,6 +2,7 @@ import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import matplotlib.pyplot as plt
 
 from qnetwork import DuelingQNetwork  # Import the new network architecture
 from replay import ReplayMemory, Transition
@@ -24,6 +25,10 @@ class DQNAgent:
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.01
 
+        # Reward plotting additions
+        self.rewards_per_episode = []
+        self.total_episode_reward = 0
+
     def act(self, state):
         if random.random() <= self.epsilon:
             return random.choice(ACTIONS)
@@ -35,6 +40,12 @@ class DQNAgent:
     def step(self, state, action, reward, next_state, done):
         action_index = ACTIONS.index(action)
         self.memory.push(torch.tensor(state["grid"], device=device).view(-1), action_index, torch.tensor([reward], device=device), torch.tensor(next_state["grid"], device=device).view(-1), done)
+        
+        self.total_episode_reward += reward  # Add rewards
+        
+        if done:
+            self.rewards_per_episode.append(self.total_episode_reward)
+            self.total_episode_reward = 0  # Reset episode reward
         
         if len(self.memory) > self.batch_size:
             transitions = self.memory.sample(self.batch_size)
@@ -59,3 +70,11 @@ class DQNAgent:
         loss.backward()
         self.optimizer.step()
         self.epsilon = max(self.epsilon_min, self.epsilon_decay*self.epsilon)
+    
+    def plot_rewards(self):
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.rewards_per_episode)
+        plt.xlabel('Episode')
+        plt.ylabel('Total Reward')
+        plt.title('Reward vs Episode')
+        plt.show()

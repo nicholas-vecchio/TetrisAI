@@ -7,6 +7,9 @@ from tetris_grid import GRID_WIDTH, is_valid_move, place_tetromino_on_grid, clea
 from tetris_pieces import tetrominoes, generate_bag
 from DQN import DQNAgent
 from tetris_ai import generate_state, apply_action, compute_reward
+from concurrent.futures import ProcessPoolExecutor
+import copy
+from multiprocessing import Manager
 
 # TODO: Fix bug where out of map tetromino doesnt end game
 # TODO: add scoring for hard drops/soft drops too maybe
@@ -114,17 +117,36 @@ def main(agent):
 
     return score, reward
 
+def episode_wrapper(episode, agent_state_dict, shared_rewards):
+    agent = DQNAgent()
+    agent.qnetwork.load_state_dict(agent_state_dict)
+    
+    try:
+        score, reward = main(agent)
+        print(f"Episode {episode + 1} Score: {score}, Reward: {reward}")
+        shared_rewards.append(reward)  # use shared memory to store rewards
+        return (score, episode)
+    except Exception as e:
+        print(f"Error in episode {episode}:", e)
+        return None
+
 if __name__ == "__main__":
     agent = DQNAgent()
     num_episodes = 10000
-
-    for episode in range(num_episodes):
-        try:
-            score, reward = main(agent)
-            print(f"Episode {episode + 1} Score: {score}, Reward: {reward}")
-
-            if episode % 50 == 0:
-                torch.save(agent.qnetwork.state_dict(), f"tetris_weights_episode_{episode}.pth")
-
-        except Exception as e:
-            print(f"Error in episode {episode}:", e)
+    parallelism = 4  # Number of episodes to run in parallel
+    
+    manager = Manager()
+    shared_rewards = manager.list()  # shared list for rewards
+    
+    with ProcessPoolExecutor(max_workers=parallelism) as executor:
+        for i in range(0, num_episodes, parallelism):
+            agent_state_dict = agent.qnetwork.state_dict()
+            futures = [executor.submit(episode_wrapper, episode=i+j, agent_state_dict=agent_state_dict, shared_rewards=shared_rewards) for j in range(parallelism)]
+            
+            for future in futures:
+                result = future.result()
+                if result:
+                    score, episode = result
+                    if episode % 50 == 0:
+                        #agent.plot_rewards(shared_rewards)  # plot using shared_rewards TODO: Fix this
+                        torch.save(agent.qnetwork.state_dict(), f"tetris_weights_episode_{episode}.pth")
