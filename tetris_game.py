@@ -148,5 +148,6 @@ if __name__ == "__main__":
                 if result:
                     score, episode = result
                     if episode % 50 == 0:
-                        #agent.plot_rewards(shared_rewards)  # plot using shared_rewards TODO: Fix this
                         torch.save(agent.qnetwork.state_dict(), f"tetris_weights_episode_{episode}.pth")
+                    if episode % 100 == 0 and episode != 0:
+                        agent.plot_rewards(shared_rewards)  # plot using shared_rewards

@@ -71,9 +71,9 @@ class DQNAgent:
         self.optimizer.step()
         self.epsilon = max(self.epsilon_min, self.epsilon_decay*self.epsilon)
     
-    def plot_rewards(self):
+    def plot_rewards(self, rewards_list):
         plt.figure(figsize=(10, 5))
-        plt.plot(self.rewards_per_episode)
+        plt.plot(rewards_list)
         plt.xlabel('Episode')
         plt.ylabel('Total Reward')
         plt.title('Reward vs Episode')
