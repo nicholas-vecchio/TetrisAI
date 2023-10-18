@@ -73,7 +73,7 @@ class DQNAgent:
         self.epsilon = max(self.epsilon_min, self.epsilon_decay*self.epsilon)
 
     # Define a rolling average function
-    def rolling_average(data, window_size):
+    def rolling_average(self, data, window_size):
         cumsum = [0]
         for i, x in enumerate(data, 1):
             cumsum.append(cumsum[i-1] + x)
