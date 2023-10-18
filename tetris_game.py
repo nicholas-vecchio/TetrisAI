@@ -112,7 +112,7 @@ def main(agent):
             pygame.display.flip()
             clock.tick(60)
 
-    return score
+    return score, reward
 
 if __name__ == "__main__":
     agent = DQNAgent()
@@ -120,8 +120,8 @@ if __name__ == "__main__":
 
     for episode in range(num_episodes):
         try:
-            score = main(agent)
-            print(f"Episode {episode + 1} Score: {score}")
+            score, reward = main(agent)
+            print(f"Episode {episode + 1} Score: {score}, Reward: {reward}")
 
             if episode % 50 == 0:
                 torch.save(agent.qnetwork.state_dict(), f"tetris_weights_episode_{episode}.pth")

@@ -1,16 +1,29 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
-from tetris_constants import ACTIONS, GRID_WIDTH
+from tetris_constants import ACTIONS, GRID_WIDTH, GRID_HEIGHT
 
-class QNetwork(nn.Module):
+class DuelingQNetwork(nn.Module):
     def __init__(self):
-        super(QNetwork, self).__init__()
-        self.fc1 = nn.Linear(200, 128)  # Adjusted from GRID_WIDTH * GRID_WIDTH to 200
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, len(ACTIONS))
+        super(DuelingQNetwork, self).__init__()
+        self.fc1 = nn.Linear(GRID_WIDTH * GRID_HEIGHT, 128)  # assuming your state is the flattened grid
+        self.fc2 = nn.Linear(128, 128)
 
-    def forward(self, state):
-        x = torch.relu(self.fc1(state))
-        x = torch.relu(self.fc2(x))
-        return self.fc3(x)
+        # Value stream
+        self.value_fc = nn.Linear(128, 1)
+
+        # Advantage stream
+        self.advantage_fc = nn.Linear(128, len(ACTIONS))
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+
+        value = self.value_fc(x)
+        advantage = self.advantage_fc(x)
+
+        # Combine V(s) and A(s, a) to get Q(s, a)
+        q_values = value + (advantage - advantage.mean())
+
+        return q_values
