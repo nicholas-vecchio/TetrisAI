@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 from qnetwork import DuelingQNetwork  # Import the new network architecture
 from replay import ReplayMemory, Transition
+from collections import deque
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from tetris_constants import GRID_WIDTH, ACTIONS
@@ -70,11 +71,22 @@ class DQNAgent:
         loss.backward()
         self.optimizer.step()
         self.epsilon = max(self.epsilon_min, self.epsilon_decay*self.epsilon)
-    
-    def plot_rewards(self, rewards_list):
+
+    # Define a rolling average function
+    def rolling_average(data, window_size):
+        cumsum = [0]
+        for i, x in enumerate(data, 1):
+            cumsum.append(cumsum[i-1] + x)
+            if i >= window_size:
+                moving_avg = (cumsum[i] - cumsum[i-window_size]) / window_size
+                yield moving_avg
+            
+    def plot_rewards(self, rewards, window_size=100):
         plt.figure(figsize=(10, 5))
-        plt.plot(rewards_list)
+        plt.plot(rewards, label='Rewards')
+        plt.plot(list(self.rolling_average(rewards, window_size)), label=f"Rolling avg (window={window_size})", color='red')
         plt.xlabel('Episode')
         plt.ylabel('Total Reward')
         plt.title('Reward vs Episode')
+        plt.legend()
         plt.show()

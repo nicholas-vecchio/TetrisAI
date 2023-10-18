@@ -30,7 +30,7 @@ else:
     clock = None
 
 # Define a set of actions
-MOVE_ACTIONS = ['LEFT', 'RIGHT', 'SOFT_DROP', 'HARD_DROP', 'HOLD']
+MOVE_ACTIONS = ['LEFT', 'RIGHT', 'HARD_DROP', 'HOLD']
 ROTATIONS = [0, 1, 2, 3]  # Assuming max 4 rotations as usual for Tetris pieces
 
 ACTIONS = [(move, rot) for move in MOVE_ACTIONS for rot in ROTATIONS]

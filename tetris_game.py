@@ -10,6 +10,7 @@ from tetris_ai import generate_state, apply_action, compute_reward
 from concurrent.futures import ProcessPoolExecutor
 import copy
 from multiprocessing import Manager
+import matplotlib as plt
 
 # TODO: Fix bug where out of map tetromino doesnt end game
 # TODO: add scoring for hard drops/soft drops too maybe
@@ -132,11 +133,14 @@ def episode_wrapper(episode, agent_state_dict, shared_rewards):
 
 if __name__ == "__main__":
     agent = DQNAgent()
-    num_episodes = 10000
-    parallelism = 4  # Number of episodes to run in parallel
+    num_episodes = 1000
+    parallelism = 4
+    window_size = 100
+    highest_reward = float('-inf')
     
     manager = Manager()
-    shared_rewards = manager.list()  # shared list for rewards
+    shared_rewards = manager.list()
+    epsilons = []  # To store ε values for each episode
     
     with ProcessPoolExecutor(max_workers=parallelism) as executor:
         for i in range(0, num_episodes, parallelism):
@@ -147,7 +151,17 @@ if __name__ == "__main__":
                 result = future.result()
                 if result:
                     score, episode = result
-                    if episode % 50 == 0:
-                        torch.save(agent.qnetwork.state_dict(), f"tetris_weights_episode_{episode}.pth")
+                    if score > highest_reward:
+                        highest_reward = score
+                        torch.save(agent.qnetwork.state_dict(), f"tetris_best_weights.pth")
                     if episode % 100 == 0 and episode != 0:
-                        agent.plot_rewards(shared_rewards)  # plot using shared_rewards
+                        agent.plot_rewards(shared_rewards, window_size)
+            
+            epsilons.append(agent.epsilon)  # Store ε for the current episode
+    
+    # Plot epsilon decay after all episodes are done
+    plt.plot(epsilons)
+    plt.xlabel('Episode')
+    plt.ylabel('Epsilon')
+    plt.title('Exploration Rate Decay')
+    plt.show()
