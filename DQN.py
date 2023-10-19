@@ -59,26 +59,39 @@ class DQNAgent:
 
     def learn(self, transitions):
         batch = Transition(*zip(*transitions))
+        
+        # Create a mask for non-final (not done) states
         non_final_next_states_mask = torch.tensor(tuple(map(lambda s: s is not None and not s[4], transitions)), device=device, dtype=torch.bool)
         non_final_next_states = torch.cat([s.clone().detach().float().view(1, -1) for s in batch.next_state if s is not None and not s[4]]).to(device)
+        
         state_batch = torch.cat([s.clone().detach().float().view(1, -1) for s in batch.state]).to(device)
         action_batch = torch.cat([torch.tensor([a], device=device) for a in batch.action]).to(device)
         reward_batch = torch.cat(batch.reward).to(device)
-
-        with autocast():  # Enable AMP for forward pass
+        
+        with torch.cuda.amp.autocast():  
             state_action_values = self.qnetwork(state_batch).gather(1, action_batch.view(-1, 1))
-            next_state_values = torch.zeros(self.batch_size, device=device)
-            next_state_values[non_final_next_states_mask] = self.target_network(non_final_next_states).max(1)[0].detach()
+            
+            # Initialize next_state_values to zeros for the actual batch size
+            next_state_values = torch.zeros(len(transitions), device=device)
+            
+            # Update the Q-values only for the non-final next states.
+            with torch.cuda.amp.autocast():
+                next_state_values_temp = self.target_network(non_final_next_states).max(1)[0].detach()
+            next_state_values[non_final_next_states_mask] = next_state_values_temp.float()
+
+            
             expected_state_action_values = (next_state_values * self.gamma) + reward_batch
             loss = nn.functional.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
-
-        # Backward pass and optimization using AMP
+        
         self.optimizer.zero_grad()
+        # Use scaler to scale the loss before backpropagation
         self.scaler.scale(loss).backward()
+        # Step the optimizer with the scaler
         self.scaler.step(self.optimizer)
         self.scaler.update()
 
         self.epsilon = max(self.epsilon_min, self.epsilon_decay*self.epsilon)
+
 
     def rolling_average(self, data, window_size):
         cumsum = [0]
