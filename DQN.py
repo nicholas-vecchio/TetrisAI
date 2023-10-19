@@ -24,7 +24,7 @@ class DQNAgent:
         self.epsilon = 1.0
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.01
-        self.scaler = GradScaler()  # Add this for AMP
+        self.scaler = GradScaler()
 
         self.rewards_per_episode = []
         self.total_episode_reward = 0
@@ -67,16 +67,6 @@ class DQNAgent:
         state_batch = torch.cat([s.clone().detach().float().view(1, -1) for s in batch.state]).to(device)
         action_batch = torch.cat([torch.tensor([a], device=device) for a in batch.action]).to(device)
         reward_batch = torch.cat(batch.reward).to(device)
-
-        # Debugging statements
-        if state_batch.shape[0] != self.batch_size:
-            print("[DEBUG] Unexpected state batch shape:", state_batch.shape)
-
-        if action_batch.shape[0] != self.batch_size:
-            print("[DEBUG] Unexpected action batch shape:", action_batch.shape)
-
-        if reward_batch.shape[0] != self.batch_size:
-            print("[DEBUG] Unexpected reward batch shape:", reward_batch.shape)
         
         with torch.cuda.amp.autocast():  
             state_action_values = self.qnetwork(state_batch).gather(1, action_batch.view(-1, 1))

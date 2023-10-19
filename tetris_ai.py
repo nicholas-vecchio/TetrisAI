@@ -16,6 +16,8 @@ def compute_reward(old_state, new_state, game_over):
 
     reward += 20 * line_clears  # Give a consistent reward for any line clear
 
+    #TODO: add varied rewards for line clears or a big bonus for a tetris
+
     # Penalize holes
     holes = sum(1 for x in range(GRID_WIDTH) 
                 for y in range(GRID_HEIGHT-1) 
