@@ -61,8 +61,8 @@ class DQNAgent:
         batch = Transition(*zip(*transitions))
         
         # Create a mask for non-final (not done) states
-        non_final_next_states_mask = torch.tensor(tuple(map(lambda s: s is not None and not s[4], transitions)), device=device, dtype=torch.bool)
-        non_final_next_states = torch.cat([s.clone().detach().float().view(1, -1) for s in batch.next_state if s is not None and not s[4]]).to(device)
+        non_final_next_states_mask = torch.tensor([s is not None for s in batch.next_state], device=device, dtype=torch.bool)
+        non_final_next_states = torch.cat([s.clone().detach().float().view(1, -1) for s in batch.next_state if s is not None]).to(device)
         
         state_batch = torch.cat([s.clone().detach().float().view(1, -1) for s in batch.state]).to(device)
         action_batch = torch.cat([torch.tensor([a], device=device) for a in batch.action]).to(device)

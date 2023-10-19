@@ -19,6 +19,7 @@ from collections import deque
 # TODO: Re-add soft drop
 # TODO: Profiling
 # TODO: Enable use of tensor cores
+# TODO: Fix rolling average graph
 
 SAVE_INTERVAL = 50
 CHECKPOINT_PATH = "CHECKPOINTS"
