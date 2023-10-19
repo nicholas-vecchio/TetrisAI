@@ -1,7 +1,7 @@
 import pygame
 import random
 import torch
-from tetris_constants import SHOW_VISUALS, screen, WHITE, COLORS, font, SCREEN_WIDTH, clock, ACTIONS, GRID_HEIGHT, MOVE_ACTIONS
+from tetris_constants import SHOW_VISUALS, screen, WHITE, COLORS, font, SCREEN_WIDTH, clock, ACTIONS, GRID_HEIGHT, MOVE_ACTIONS, BATCH_SIZE
 from tetris_rendering import draw_grid, draw_grid_background, draw_held_tetromino_box, draw_next_tetromino_box, draw_tetromino
 from tetris_grid import GRID_WIDTH, is_valid_move, place_tetromino_on_grid, clear_complete_lines, reset_grid, grid
 from tetris_pieces import tetrominoes, generate_bag
@@ -10,13 +10,15 @@ from tetris_ai import generate_state, apply_action, compute_reward
 from concurrent.futures import ProcessPoolExecutor
 import copy
 from multiprocessing import Manager
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 # TODO: Fix bug where out of map tetromino doesnt end game
 # TODO: add scoring for hard drops/soft drops too maybe
 # TODO: Re-add soft drop
 # TODO: Profiling
 # TODO: Enable use of tensor cores
+
+SAVE_INTERVAL = 50
 
 def apply_move_action(tetromino, action, x, y, rotation):
     if action == 'LEFT':
@@ -31,7 +33,7 @@ def apply_move_action(tetromino, action, x, y, rotation):
         return True
     return False
 
-def main(agent):
+def main(agent, shared_experience):
     if(SHOW_VISUALS):
         pygame.init()
     running = True
@@ -126,6 +128,8 @@ def main(agent):
 
         reward = compute_reward(state, new_state, not running)
         agent.step(state, action, reward, new_state, not running)
+        experience = (state, action, reward, new_state, not running)
+        shared_experience.append(experience)
 
         reward_text = font.render(f'Reward: {reward}', True, (0, 0, 0))
         rewards_pos = (SCREEN_WIDTH - score_text.get_width() - 60, 50)
@@ -139,14 +143,14 @@ def main(agent):
 
     return score, reward
 
-def episode_wrapper(episode, agent_state_dict, shared_rewards):
+def episode_wrapper(episode, agent_state_dict, shared_rewards, shared_experience):
     agent = DQNAgent()
     agent.qnetwork.load_state_dict(agent_state_dict)
     
     try:
-        score, reward = main(agent)
+        score, reward = main(agent, shared_experience)  # Pass shared experience to main function
         print(f"Episode {episode + 1} Score: {score}, Reward: {reward}")
-        shared_rewards.append(reward)  # use shared memory to store rewards
+        shared_rewards.append(reward)
         return (score, episode)
     except Exception as e:
         print(f"Error in episode {episode}:", e)
@@ -157,29 +161,34 @@ if __name__ == "__main__":
     num_episodes = 1000
     parallelism = 4
     window_size = 100
-    highest_reward = float('-inf')
     
     manager = Manager()
     shared_rewards = manager.list()
-    epsilons = []  # To store ε values for each episode
-    
+    shared_experience = manager.list()
+    epsilons = []
+    batch_size = BATCH_SIZE
+
     with ProcessPoolExecutor(max_workers=parallelism) as executor:
         for i in range(0, num_episodes, parallelism):
             agent_state_dict = agent.qnetwork.state_dict()
-            futures = [executor.submit(episode_wrapper, episode=i+j, agent_state_dict=agent_state_dict, shared_rewards=shared_rewards) for j in range(parallelism)]
+            futures = [executor.submit(episode_wrapper, episode=i+j, agent_state_dict=agent_state_dict, shared_rewards=shared_rewards, shared_experience=shared_experience) for j in range(parallelism)]
             
             for future in futures:
                 result = future.result()
                 if result:
                     score, episode = result
-                    if score > highest_reward:
-                        highest_reward = score
-                        torch.save(agent.qnetwork.state_dict(), f"tetris_best_weights.pth")
-                    if episode % 100 == 0 and episode != 0:
-                        agent.plot_rewards(shared_rewards, window_size)
+                    if episode % SAVE_INTERVAL == 0: 
+                        torch.save(agent.qnetwork.state_dict(), f"tetris_checkpoint_{episode}.pth")
             
-            epsilons.append(agent.epsilon)  # Store ε for the current episode
-    
+            if len(shared_experience) >= batch_size:
+                batch = random.sample(shared_experience, batch_size)
+                for experience in batch:
+                    state, action, reward, new_state, done = experience
+                    agent.step(state, action, reward, new_state, done)
+            
+            del shared_experience[:]
+            epsilons.append(agent.epsilon)
+
     # Plot epsilon decay after all episodes are done
     plt.plot(epsilons)
     plt.xlabel('Episode')

@@ -7,7 +7,7 @@ from torch.cuda.amp import autocast, GradScaler
 
 from qnetwork import DuelingQNetwork
 from replay import ReplayMemory, Transition
-from tetris_constants import GRID_WIDTH, ACTIONS
+from tetris_constants import GRID_WIDTH, ACTIONS, BATCH_SIZE
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 TARGET_UPDATE = 100
@@ -19,7 +19,7 @@ class DQNAgent:
         self.target_network.load_state_dict(self.qnetwork.state_dict())
         self.optimizer = optim.Adam(self.qnetwork.parameters(), lr=0.001)
         self.memory = ReplayMemory(10000)
-        self.batch_size = 128
+        self.batch_size = BATCH_SIZE
         self.gamma = 0.99
         self.epsilon = 1.0
         self.epsilon_decay = 0.995
