@@ -12,6 +12,7 @@ import copy
 from multiprocessing import Manager
 import matplotlib.pyplot as plt
 import os
+from collections import deque
 
 # TODO: Fix bug where out of map tetromino doesnt end game
 # TODO: add scoring for hard drops/soft drops too maybe
@@ -21,6 +22,7 @@ import os
 
 SAVE_INTERVAL = 50
 CHECKPOINT_PATH = "CHECKPOINTS"
+MAX_MEM = 100000
 
 def apply_move_action(tetromino, action, x, y, rotation):
     if action == 'LEFT':
@@ -185,7 +187,7 @@ if __name__ == "__main__":
     
     manager = Manager()
     shared_rewards = manager.list()
-    shared_experience = manager.list()
+    shared_experience = manager.list(deque(maxlen=MAX_MEM))   
     epsilons = []
     batch_size = BATCH_SIZE
 
@@ -213,7 +215,7 @@ if __name__ == "__main__":
                     state, action, reward, new_state, done = experience
                     agent.step(state, action, reward, new_state, done)
             
-            del shared_experience[:]
+            shared_experience.append(experience)            
             epsilons.append(agent.epsilon)
 
     # Plot epsilon decay after all episodes are done
