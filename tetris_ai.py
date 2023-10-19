@@ -14,9 +14,8 @@ def compute_reward(old_state, new_state, game_over):
     new_clears = sum(1 for row in new_grid_2d if all(row))
     line_clears = new_clears - old_clears
 
-    reward += 10 * (line_clears * 1.5)  # Exponential award for line clears.
-
-    #TODO: add varied rewards for line clears or a big bonus for a tetris
+    # Exponential award for line clears.
+    reward += 10 * (2 ** line_clears - 1)
 
     # Penalize holes
     holes = sum(1 for x in range(GRID_WIDTH) 
@@ -29,11 +28,21 @@ def compute_reward(old_state, new_state, game_over):
     blocks_above_threshold = sum(1 for x in range(GRID_WIDTH) for y in range(HEIGHT_THRESHOLD) if new_grid_2d[y][x])
     reward -= blocks_above_threshold
 
+    # Penalize column height variance
+    column_heights = [max([y for y in range(GRID_HEIGHT) if new_grid_2d[y][x]]) for x in range(GRID_WIDTH)]
+    height_variance_penalty = sum(abs(column_heights[i] - column_heights[i+1]) for i in range(GRID_WIDTH - 1))
+    reward -= height_variance_penalty
+
     # Game over penalty
     if game_over:
         reward -= 200  # Significant penalty for game over
 
+    # Normalize reward
+    max_penalty = 10 * GRID_WIDTH * (GRID_HEIGHT - 1) + GRID_WIDTH * HEIGHT_THRESHOLD + (GRID_WIDTH - 1) * (GRID_HEIGHT - 1) + 200
+    reward = reward / max_penalty
+
     return reward
+
 
 
 
