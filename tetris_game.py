@@ -1,7 +1,7 @@
 import pygame
 import random
 import torch
-from tetris_constants import SHOW_VISUALS, screen, WHITE, COLORS, font, SCREEN_WIDTH, clock, ACTIONS, GRID_HEIGHT
+from tetris_constants import SHOW_VISUALS, screen, WHITE, COLORS, font, SCREEN_WIDTH, clock, ACTIONS, GRID_HEIGHT, MOVE_ACTIONS
 from tetris_rendering import draw_grid, draw_grid_background, draw_held_tetromino_box, draw_next_tetromino_box, draw_tetromino
 from tetris_grid import GRID_WIDTH, is_valid_move, place_tetromino_on_grid, clear_complete_lines, reset_grid, grid
 from tetris_pieces import tetrominoes, generate_bag
@@ -17,6 +17,19 @@ import matplotlib as plt
 # TODO: Re-add soft drop
 # TODO: Profiling
 # TODO: Enable use of tensor cores
+
+def apply_move_action(tetromino, action, x, y, rotation):
+    if action == 'LEFT':
+        return is_valid_move(tetromino[rotation], x - 1, y)
+    elif action == 'RIGHT':
+        return is_valid_move(tetromino[rotation], x + 1, y)
+    elif action == 'HARD_DROP':
+        while is_valid_move(tetromino[rotation], x, y):
+            y += 1
+        return y > 0
+    elif action == 'HOLD':
+        return True
+    return False
 
 def main(agent):
     if(SHOW_VISUALS):
@@ -45,19 +58,21 @@ def main(agent):
         state = generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held, held_tetromino)
         valid_action = None
         attempts = 0
+
         while valid_action is None and attempts < 10:
             action = agent.act(state)
             move, rotation = action
-            rotated_tetromino = current_tetromino[rotation]
-            if is_valid_move(rotated_tetromino, tetromino_x, tetromino_y):
+            if move in MOVE_ACTIONS and apply_move_action(current_tetromino, move, tetromino_x, tetromino_y, rotation):
                 valid_action = action
             attempts += 1
 
         if valid_action:
             action = valid_action
         else:
-            valid_actions = [a for a in ACTIONS if is_valid_move(current_tetromino[a[1]], tetromino_x, tetromino_y)]
-            action = random.choice(valid_actions) if valid_actions else None
+            valid_actions = [a for a in ACTIONS if apply_move_action(current_tetromino, a[0], tetromino_x, tetromino_y, a[1])]
+            action = random.choice(valid_actions)
+
+        move, rotation = action
 
         new_state = apply_action(current_tetromino, action, state, next_tetromino, bag)
         has_held = new_state["has_held"]
