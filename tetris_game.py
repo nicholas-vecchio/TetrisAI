@@ -15,7 +15,8 @@ import matplotlib as plt
 # TODO: Fix bug where out of map tetromino doesnt end game
 # TODO: add scoring for hard drops/soft drops too maybe
 # TODO: Re-add soft drop
-# TODO: Parralelism?
+# TODO: Profiling
+# TODO: Enable use of tensor cores
 
 def main(agent):
     if(SHOW_VISUALS):
@@ -52,7 +53,12 @@ def main(agent):
                 valid_action = action
             attempts += 1
 
-        action = valid_action if valid_action else random.choice(ACTIONS)
+        if valid_action:
+            action = valid_action
+        else:
+            valid_actions = [a for a in ACTIONS if is_valid_move(current_tetromino[a[1]], tetromino_x, tetromino_y)]
+            action = random.choice(valid_actions) if valid_actions else None
+
         new_state = apply_action(current_tetromino, action, state, next_tetromino, bag)
         has_held = new_state["has_held"]
         current_tetromino, tetromino_x, tetromino_y, current_rotation, held_tetromino = new_state['tetromino'], new_state['tetromino_position'][0], new_state['tetromino_position'][1], new_state['tetromino_rotation'], new_state['held_tetromino']
