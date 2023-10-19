@@ -149,7 +149,8 @@ def main(agent, shared_experience):
 
 def latest_checkpoint():
     if not os.path.exists(CHECKPOINT_PATH):
-        return None
+        os.makedirs(CHECKPOINT_PATH)
+
     
     all_checkpoints = [f for f in os.listdir(CHECKPOINT_PATH) if os.path.isfile(os.path.join(CHECKPOINT_PATH, f)) and f.endswith(".pth")]
     if not all_checkpoints:
@@ -192,32 +193,32 @@ if __name__ == "__main__":
     batch_size = BATCH_SIZE
 
     with ProcessPoolExecutor(max_workers=parallelism) as executor:
-        for i in range(0, num_episodes, parallelism):
+        for i in range(start_episode, start_episode + num_episodes, parallelism): # Start from the last episode
             agent_state_dict = agent.qnetwork.state_dict()
             futures = [executor.submit(episode_wrapper, episode=i+j, agent_state_dict=agent_state_dict, shared_rewards=shared_rewards, shared_experience=shared_experience) for j in range(parallelism)]
-            
-    for future in futures:
-        result = future.result()
-        if result:
-            score, episode = result
-            # Ensure checkpoint directory exists
-            if not os.path.exists(CHECKPOINT_PATH):
-                os.makedirs(CHECKPOINT_PATH)
-            
-            # Save checkpoint
-            checkpoint_filename = f"tetris_checkpoint_{episode}.pth"
-            checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_filename)
-            torch.save(agent.qnetwork.state_dict(), checkpoint_path)
-            
-            if len(shared_experience) >= batch_size:
-                batch = random.sample(list(shared_experience), batch_size)
-                for experience in batch:
-                    state, action, reward, new_state, done = experience
-                    agent.step(state, action, reward, new_state, done)
-            
-            shared_experience.append(experience)            
-            epsilons.append(agent.epsilon)
 
+            for future in futures:
+                result = future.result()
+                if result:
+                    score, episode = result
+                    
+                    # Ensure checkpoint directory exists
+                    if not os.path.exists(CHECKPOINT_PATH):
+                        os.makedirs(CHECKPOINT_PATH)
+                    
+                    # Save checkpoint
+                    if(episode % SAVE_INTERVAL == 0):
+                        checkpoint_filename = f"tetris_checkpoint_{episode}.pth"
+                        checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_filename)
+                        torch.save(agent.qnetwork.state_dict(), checkpoint_path)
+                    
+                    if len(shared_experience) >= batch_size:
+                        batch = random.sample(list(shared_experience), batch_size)
+                        for experience in batch:
+                            state, action, reward, new_state, done = experience
+                            agent.step(state, action, reward, new_state, done)
+                    
+                    epsilons.append(agent.epsilon)
     # Plot epsilon decay after all episodes are done
     plt.plot(epsilons)
     plt.xlabel('Episode')
