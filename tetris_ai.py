@@ -14,7 +14,7 @@ def compute_reward(old_state, new_state, game_over):
     new_clears = sum(1 for row in new_grid_2d if all(row))
     line_clears = new_clears - old_clears
 
-    reward += 20 * line_clears  # Give a consistent reward for any line clear
+    reward += 10 * (line_clears * 1.5)  # Exponential award for line clears.
 
     #TODO: add varied rewards for line clears or a big bonus for a tetris
 
