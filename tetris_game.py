@@ -179,6 +179,7 @@ if __name__ == "__main__":
     start_episode = 0
     if checkpoint_filename:
         checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_filename)
+        print(checkpoint_filename)
         agent.qnetwork.load_state_dict(torch.load(checkpoint_path))
         start_episode = int(checkpoint_filename.split('_')[2].split('.')[0]) + 1  # extract episode number and increment
 
@@ -217,6 +218,9 @@ if __name__ == "__main__":
                         for experience in batch:
                             state, action, reward, new_state, done = experience
                             agent.step(state, action, reward, new_state, done)
+
+                    if episode % 100 == 0 and episode != 0:
+                        agent.plot_rewards(shared_rewards, window_size)
                     
                     epsilons.append(agent.epsilon)
     # Plot epsilon decay after all episodes are done
