@@ -112,3 +112,52 @@ def apply_action(tetromino, action, state, next_tetromino, bag):
 
     # Return the new state
     return new_state
+
+# heuristic functions
+
+def number_of_completed_lines(grid):
+    return sum(1 for row in grid if all(row))
+
+def count_holes(grid):
+    return sum(1 for x in range(GRID_WIDTH) 
+                for y in range(GRID_HEIGHT-1) 
+                if grid[y][x] and not grid[y+1][x])
+
+def calculate_aggregate_height(grid):
+    return sum(y for x in range(GRID_WIDTH) for y in range(GRID_HEIGHT) if grid[y][x])
+
+def calculate_bumpiness(grid):
+    heights = [y for x in range(GRID_WIDTH) for y in range(GRID_HEIGHT) if grid[y][x]]
+    return sum(abs(heights[i] - heights[i + 1]) for i in range(len(heights) - 1))
+
+def drop_position(grid, tetromino, x):
+    for y in range(GRID_HEIGHT):
+        if not is_valid_move(tetromino, x, y):
+            return y - 1
+    return GRID_HEIGHT - 1
+
+def evaluate_move(grid, tetromino, x, rotation):
+    y = drop_position(grid, tetromino, x)
+    temp_grid = place_tetromino_on_grid(grid, tetromino, x, y, rotation)
+    
+    completed_lines = number_of_completed_lines(temp_grid)
+    holes = count_holes(temp_grid)
+    aggregate_height = calculate_aggregate_height(temp_grid)
+    bumpiness = calculate_bumpiness(temp_grid)
+    
+    # Weights can be adjusted based on empirical results or training
+    return (-0.5 * aggregate_height + 0.76 * completed_lines - 0.36 * holes - 0.18 * bumpiness)
+
+def best_move(grid, current_tetromino):
+    best_evaluation = float('-inf')
+    best_x, best_rotation = 0, 0
+    
+    for rotation in range(len(current_tetromino)):
+        for x in range(GRID_WIDTH - len(current_tetromino[0]) + 1):  # Ensure the tetromino fits within grid width
+            if is_valid_move(current_tetromino[rotation], x, 0):  # Check for valid starting position
+                current_evaluation = evaluate_move(grid, current_tetromino[rotation], x, rotation)
+                if current_evaluation > best_evaluation:
+                    best_evaluation = current_evaluation
+                    best_x, best_rotation = x, rotation
+                    
+    return best_x, best_rotation
