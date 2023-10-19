@@ -11,6 +11,7 @@ from concurrent.futures import ProcessPoolExecutor
 import copy
 from multiprocessing import Manager
 import matplotlib.pyplot as plt
+import os
 
 # TODO: Fix bug where out of map tetromino doesnt end game
 # TODO: add scoring for hard drops/soft drops too maybe
@@ -19,6 +20,7 @@ import matplotlib.pyplot as plt
 # TODO: Enable use of tensor cores
 
 SAVE_INTERVAL = 50
+CHECKPOINT_PATH = "CHECKPOINTS"
 
 def apply_move_action(tetromino, action, x, y, rotation):
     if action == 'LEFT':
@@ -143,6 +145,16 @@ def main(agent, shared_experience):
 
     return score, reward
 
+def latest_checkpoint():
+    if not os.path.exists(CHECKPOINT_PATH):
+        return None
+    
+    all_checkpoints = [f for f in os.listdir(CHECKPOINT_PATH) if os.path.isfile(os.path.join(CHECKPOINT_PATH, f)) and f.endswith(".pth")]
+    if not all_checkpoints:
+        return None
+
+    return max(all_checkpoints, key=lambda x: int(x.split('_')[2].split('.')[0]))
+
 def episode_wrapper(episode, agent_state_dict, shared_rewards, shared_experience):
     agent = DQNAgent()
     agent.qnetwork.load_state_dict(agent_state_dict)
@@ -158,6 +170,15 @@ def episode_wrapper(episode, agent_state_dict, shared_rewards, shared_experience
 
 if __name__ == "__main__":
     agent = DQNAgent()
+
+    # Try to load from the latest checkpoint
+    checkpoint_filename = latest_checkpoint()
+    start_episode = 0
+    if checkpoint_filename:
+        checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_filename)
+        agent.qnetwork.load_state_dict(torch.load(checkpoint_path))
+        start_episode = int(checkpoint_filename.split('_')[2].split('.')[0]) + 1  # extract episode number and increment
+
     num_episodes = 1000
     parallelism = 4
     window_size = 100
@@ -173,15 +194,21 @@ if __name__ == "__main__":
             agent_state_dict = agent.qnetwork.state_dict()
             futures = [executor.submit(episode_wrapper, episode=i+j, agent_state_dict=agent_state_dict, shared_rewards=shared_rewards, shared_experience=shared_experience) for j in range(parallelism)]
             
-            for future in futures:
-                result = future.result()
-                if result:
-                    score, episode = result
-                    if episode % SAVE_INTERVAL == 0: 
-                        torch.save(agent.qnetwork.state_dict(), f"tetris_checkpoint_{episode}.pth")
+    for future in futures:
+        result = future.result()
+        if result:
+            score, episode = result
+            # Ensure checkpoint directory exists
+            if not os.path.exists(CHECKPOINT_PATH):
+                os.makedirs(CHECKPOINT_PATH)
+            
+            # Save checkpoint
+            checkpoint_filename = f"tetris_checkpoint_{episode}.pth"
+            checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_filename)
+            torch.save(agent.qnetwork.state_dict(), checkpoint_path)
             
             if len(shared_experience) >= batch_size:
-                batch = random.sample(shared_experience, batch_size)
+                batch = random.sample(list(shared_experience), batch_size)
                 for experience in batch:
                     state, action, reward, new_state, done = experience
                     agent.step(state, action, reward, new_state, done)
