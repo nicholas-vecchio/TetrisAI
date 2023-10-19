@@ -39,9 +39,9 @@ def generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_ro
     # 1. Grid State:
     grid_state = [cell for row in grid for cell in row]
 
-    print("Grid state shape:", len(grid_state))
-
-    # 2. Current Tetromino State:
+    if len(grid_state) != GRID_WIDTH * GRID_HEIGHT:
+            print("[DEBUG] Unexpected grid state shape:", len(grid_state))
+        # 2. Current Tetromino State:
     tetromino_type = tetrominoes.index(current_tetromino)
     tetromino_position = (tetromino_x, tetromino_y)
     tetromino_rotation = current_rotation

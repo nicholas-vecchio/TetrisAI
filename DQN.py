@@ -53,7 +53,6 @@ class DQNAgent:
             self.total_episode_reward = 0
         if len(self.memory) > self.batch_size:
             transitions = self.memory.sample(self.batch_size)
-            print("Transitions shape:", len(transitions))  # Debugging statement
             self.learn(transitions)
         if len(self.memory) % TARGET_UPDATE == 0:
             self.target_network.load_state_dict(self.qnetwork.state_dict())
@@ -70,9 +69,14 @@ class DQNAgent:
         reward_batch = torch.cat(batch.reward).to(device)
 
         # Debugging statements
-        print("State batch shape:", state_batch.shape)
-        print("Action batch shape:", action_batch.shape)
-        print("Reward batch shape:", reward_batch.shape)
+        if state_batch.shape[0] != self.batch_size:
+            print("[DEBUG] Unexpected state batch shape:", state_batch.shape)
+
+        if action_batch.shape[0] != self.batch_size:
+            print("[DEBUG] Unexpected action batch shape:", action_batch.shape)
+
+        if reward_batch.shape[0] != self.batch_size:
+            print("[DEBUG] Unexpected reward batch shape:", reward_batch.shape)
         
         with torch.cuda.amp.autocast():  
             state_action_values = self.qnetwork(state_batch).gather(1, action_batch.view(-1, 1))
