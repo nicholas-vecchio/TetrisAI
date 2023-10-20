@@ -181,6 +181,7 @@ if __name__ == "__main__":
         print(checkpoint_filename)
         agent.qnetwork.load_state_dict(torch.load(checkpoint_path))
         start_episode = int(checkpoint_filename.split('_')[2].split('.')[0]) + 1  # extract episode number and increment
+        agent.epsilon = max(agent.epsilon_min, agent.epsilon * (agent.epsilon_decay ** start_episode))
 
     num_episodes = 1000
     parallelism = 4
@@ -220,6 +221,14 @@ if __name__ == "__main__":
 
                     if episode % 100 == 0 and episode != 0:
                         agent.plot_rewards(shared_rewards, window_size)
+
+                        plt.figure(figsize=(10, 5))
+                        plt.plot(epsilons, label='Epsilon', color='green')
+                        plt.xlabel('Episode')
+                        plt.ylabel('Epsilon')
+                        plt.title('Exploration Rate Decay')
+                        plt.legend()
+                        plt.show()
                     
                     agent.epsilon = max(agent.epsilon_min, agent.epsilon_decay*agent.epsilon)
                     epsilons.append(agent.epsilon)
