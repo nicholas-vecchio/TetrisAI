@@ -90,9 +90,6 @@ class DQNAgent:
         self.scaler.step(self.optimizer)
         self.scaler.update()
 
-        self.epsilon = max(self.epsilon_min, self.epsilon_decay*self.epsilon)
-
-
     def rolling_average(self, data, window_size):
         cumsum = [0]
         for i, x in enumerate(data, 1):

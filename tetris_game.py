@@ -14,12 +14,10 @@ import matplotlib.pyplot as plt
 import os
 from collections import deque
 
-# TODO: Fix bug where out of map tetromino doesnt end game
 # TODO: add scoring for hard drops/soft drops too maybe
 # TODO: Re-add soft drop
 # TODO: Profiling
 # TODO: Enable use of tensor cores
-# TODO: Fix rolling average graph
 
 SAVE_INTERVAL = 50
 CHECKPOINT_PATH = "CHECKPOINTS"
@@ -223,6 +221,7 @@ if __name__ == "__main__":
                     if episode % 100 == 0 and episode != 0:
                         agent.plot_rewards(shared_rewards, window_size)
                     
+                    agent.epsilon = max(agent.epsilon_min, agent.epsilon_decay*agent.epsilon)
                     epsilons.append(agent.epsilon)
     # Plot epsilon decay after all episodes are done
     plt.plot(epsilons)
