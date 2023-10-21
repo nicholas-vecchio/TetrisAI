@@ -221,14 +221,6 @@ if __name__ == "__main__":
 
                     if episode % 100 == 0 and episode != 0:
                         agent.plot_rewards(shared_rewards, window_size)
-
-                        plt.figure(figsize=(10, 5))
-                        plt.plot(epsilons, label='Epsilon', color='green')
-                        plt.xlabel('Episode')
-                        plt.ylabel('Epsilon')
-                        plt.title('Exploration Rate Decay')
-                        plt.legend()
-                        plt.show()
                     
                     agent.epsilon = max(agent.epsilon_min, agent.epsilon_decay*agent.epsilon)
                     epsilons.append(agent.epsilon)
