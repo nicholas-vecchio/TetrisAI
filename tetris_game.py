@@ -52,6 +52,7 @@ def main(agent, shared_experience):
     level = 0
     lines_cleared_total = 0
     has_held = False
+    cumulative_reward = 0
     reset_grid()
 
     while running:
@@ -129,7 +130,8 @@ def main(agent, shared_experience):
         score_text = font.render(f'Score: {score}', True, (0, 0, 0))
         score_pos = (SCREEN_WIDTH - score_text.get_width() - 60, 10)
 
-        reward = compute_reward(state, new_state, not running)
+        reward = compute_reward(state, new_state, lines_cleared ,not running)
+        cumulative_reward += reward
         agent.step(state, action, reward, new_state, not running)
         experience = (state, action, reward, new_state, not running)
         shared_experience.append(experience)
@@ -144,7 +146,7 @@ def main(agent, shared_experience):
             pygame.display.flip()
             clock.tick(60)
 
-    return score, reward
+    return score, cumulative_reward
 
 def latest_checkpoint():
     if not os.path.exists(CHECKPOINT_PATH):
@@ -157,13 +159,10 @@ def latest_checkpoint():
 
     return max(all_checkpoints, key=lambda x: int(x.split('_')[2].split('.')[0]))
 
-def episode_wrapper(episode, agent_state_dict, shared_rewards, shared_experience):
-    agent = DQNAgent()
-    agent.qnetwork.load_state_dict(agent_state_dict)
-    
+def episode_wrapper(agent, episode, shared_rewards, shared_experience):    
     try:
         score, reward = main(agent, shared_experience)  # Pass shared experience to main function
-        print(f"Episode {episode + 1} Score: {score}, Reward: {reward}")
+        print(f"Episode {episode + 1} Score: {score}, Total Reward: {reward}")
         shared_rewards.append(reward)
         return (score, episode)
     except Exception as e:
@@ -196,7 +195,7 @@ if __name__ == "__main__":
     with ProcessPoolExecutor(max_workers=parallelism) as executor:
         for i in range(start_episode, start_episode + num_episodes, parallelism): # Start from the last episode
             agent_state_dict = agent.qnetwork.state_dict()
-            futures = [executor.submit(episode_wrapper, episode=i+j, agent_state_dict=agent_state_dict, shared_rewards=shared_rewards, shared_experience=shared_experience) for j in range(parallelism)]
+            futures = [executor.submit(episode_wrapper, agent=agent, episode=i+j, shared_rewards=shared_rewards, shared_experience=shared_experience) for j in range(parallelism)]
 
             for future in futures:
                 result = future.result()

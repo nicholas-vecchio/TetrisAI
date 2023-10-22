@@ -43,28 +43,19 @@ from tetris_grid import is_valid_move, place_tetromino_on_grid
 
     return reward'''
 
-def compute_reward(old_state, new_state, game_over):
+def compute_reward(old_state, new_state, lines_cleared, game_over):
     reward = 0
 
     # Reshape the flattened grid into a 2D list
     old_grid_2d = [old_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(old_state['grid']), GRID_WIDTH)]
     new_grid_2d = [new_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(new_state['grid']), GRID_WIDTH)]
 
-    # Calculate line clears
-    old_clears = sum(1 for row in old_grid_2d if all(row))
-    new_clears = sum(1 for row in new_grid_2d if all(row))
-    line_clears = new_clears - old_clears
-
     # Reward for line clears
-    reward += 10 * line_clears
+    reward += 20 * lines_cleared
 
     # Game over penalty
     if game_over:
-        reward -= 50
-
-    # Optional: Penalize height
-    max_height = max(sum(1 for cell in col if cell) for col in zip(*new_grid_2d))
-    reward -= max_height
+        reward -= 100
 
     return reward
 
