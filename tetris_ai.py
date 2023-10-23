@@ -2,7 +2,7 @@ from tetris_pieces import tetrominoes, generate_bag
 from tetris_constants import ACTIONS, GRID_WIDTH, GRID_HEIGHT
 from tetris_grid import is_valid_move, place_tetromino_on_grid
 
-'''def compute_reward(old_state, new_state, game_over):
+def compute_reward(old_state, new_state, game_over):
     reward = 0
 
     # Reshape the flattened grid into a 2D list
@@ -41,24 +41,7 @@ from tetris_grid import is_valid_move, place_tetromino_on_grid
     max_penalty = 10 * GRID_WIDTH * (GRID_HEIGHT - 1) + GRID_WIDTH * HEIGHT_THRESHOLD + (GRID_WIDTH - 1) * (GRID_HEIGHT - 1) + 200
     reward = reward / max_penalty
 
-    return reward'''
-
-def compute_reward(old_state, new_state, lines_cleared, game_over):
-    reward = 0
-
-    # Reshape the flattened grid into a 2D list
-    old_grid_2d = [old_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(old_state['grid']), GRID_WIDTH)]
-    new_grid_2d = [new_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(new_state['grid']), GRID_WIDTH)]
-
-    # Reward for line clears
-    reward += 20 * lines_cleared
-
-    # Game over penalty
-    if game_over:
-        reward -= 100
-
     return reward
-
 
 
 
