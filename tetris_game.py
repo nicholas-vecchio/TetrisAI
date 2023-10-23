@@ -219,7 +219,7 @@ if __name__ == "__main__":
                             agent.step(state, action, reward, new_state, done)
 
                     if episode % 100 == 0 and episode != 0:
-                        agent.plot_rewards(shared_rewards, window_size)
+                        agent.plot_rewards(shared_rewards, score, window_size)
                     
                     agent.epsilon = max(agent.epsilon_min, agent.epsilon_decay*agent.epsilon)
                     epsilons.append(agent.epsilon)

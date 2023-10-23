@@ -98,12 +98,26 @@ class DQNAgent:
                 moving_avg = (cumsum[i] - cumsum[i-window_size]) / window_size
                 yield moving_avg
 
-    def plot_rewards(self, rewards, window_size=100):
+    def plot_rewards(self, rewards, scores, window_size=100):
         plt.figure(figsize=(10, 5))
+        
+        # Plot rewards
+        plt.subplot(2, 1, 1)
         plt.plot(rewards, label='Rewards')
         plt.plot(list(self.rolling_average(rewards, window_size)), label=f"Rolling avg (window={window_size})", color='red')
         plt.xlabel('Episode')
         plt.ylabel('Total Reward')
         plt.title('Reward vs Episode')
         plt.legend()
+        
+        # Plot scores
+        plt.subplot(2, 1, 2)
+        plt.plot(scores, label='Scores', color='green')
+        plt.plot(list(self.rolling_average(scores, window_size)), label=f"Rolling avg (window={window_size})", color='blue')
+        plt.xlabel('Episode')
+        plt.ylabel('Score')
+        plt.title('Score vs Episode')
+        plt.legend()
+        
+        plt.tight_layout()
         plt.show()
