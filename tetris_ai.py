@@ -31,7 +31,7 @@ def compute_reward(new_state, game_over, lines_cleared):
 
     # Game over penalty
     if game_over:
-        reward -= 400  # Significant penalty for game over
+        reward -= 300  # Significant penalty for game over
 
     return reward
 
