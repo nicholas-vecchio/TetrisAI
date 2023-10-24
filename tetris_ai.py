@@ -5,11 +5,13 @@ from tetris_grid import is_valid_move, place_tetromino_on_grid
 def compute_reward(new_state, game_over, lines_cleared):
     reward = 0
 
+    #TODO: Reduce penalties.
+
     new_grid_2d = [new_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(new_state['grid']), GRID_WIDTH)]
 
 
     # Exponential award for line clears.
-    reward += 10 * (2 ** lines_cleared - 1)
+    reward += 20 * (2 ** lines_cleared - 1) if lines_cleared > 0 else 0
 
     # Penalize holes
     holes = sum(1 for x in range(GRID_WIDTH) 
