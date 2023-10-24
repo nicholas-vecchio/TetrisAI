@@ -2,20 +2,14 @@ from tetris_pieces import tetrominoes, generate_bag
 from tetris_constants import ACTIONS, GRID_WIDTH, GRID_HEIGHT
 from tetris_grid import is_valid_move, place_tetromino_on_grid
 
-def compute_reward(old_state, new_state, game_over):
+def compute_reward(new_state, game_over, lines_cleared):
     reward = 0
 
-    # Reshape the flattened grid into a 2D list
-    old_grid_2d = [old_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(old_state['grid']), GRID_WIDTH)]
     new_grid_2d = [new_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(new_state['grid']), GRID_WIDTH)]
 
-    # Calculate line clears
-    old_clears = sum(1 for row in old_grid_2d if all(row))
-    new_clears = sum(1 for row in new_grid_2d if all(row))
-    line_clears = new_clears - old_clears
 
     # Exponential award for line clears.
-    reward += 10 * (2 ** line_clears - 1)
+    reward += 10 * (2 ** lines_cleared - 1)
 
     # Penalize holes
     holes = sum(1 for x in range(GRID_WIDTH) 
