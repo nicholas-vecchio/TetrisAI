@@ -22,16 +22,16 @@ def compute_reward(new_state, game_over, lines_cleared):
     # Penalize height
     HEIGHT_THRESHOLD = GRID_HEIGHT // 2
     blocks_above_threshold = sum(1 for x in range(GRID_WIDTH) for y in range(HEIGHT_THRESHOLD) if new_grid_2d[y][x])
-    reward -= blocks_above_threshold
+    reward -=  0.5 * blocks_above_threshold
 
     # Penalize column height variance
     column_heights = [max([y for y in range(GRID_HEIGHT) if new_grid_2d[y][x]], default=-1) for x in range(GRID_WIDTH)]
     height_variance_penalty = sum(abs(column_heights[i] - column_heights[i+1]) for i in range(GRID_WIDTH - 1))
-    reward -= height_variance_penalty
+    reward -= 0.5 * height_variance_penalty
 
     # Game over penalty
     if game_over:
-        reward -= 200  # Significant penalty for game over
+        reward -= 400  # Significant penalty for game over
 
     return reward
 
