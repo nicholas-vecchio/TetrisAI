@@ -150,7 +150,7 @@ def main(agent, shared_experience):
 
     avg_reward = cumulative_reward/ num_steps if num_steps != 0 else 0
 
-    return score, avg_reward
+    return score, avg_reward, num_steps
 
 def latest_checkpoint():
     if not os.path.exists(CHECKPOINT_PATH):
@@ -165,8 +165,8 @@ def latest_checkpoint():
 
 def episode_wrapper(agent, episode, shared_rewards, shared_experience):    
     try:
-        score, reward = main(agent, shared_experience)  # Pass shared experience to main function
-        print(f"Episode {episode + 1} Score: {score}, Average Reward: {reward}")
+        score, reward, num_steps = main(agent, shared_experience)  # Pass shared experience to main function
+        print(f"Episode {episode + 1} Score: {score}, Average Reward: {reward}, Num Steps: {num_steps}")
         shared_rewards.append(reward)
         return (score, episode)
     except Exception as e:
