@@ -130,7 +130,7 @@ def main(agent, shared_experience):
         score_text = font.render(f'Score: {score}', True, (0, 0, 0))
         score_pos = (SCREEN_WIDTH - score_text.get_width() - 60, 10)
 
-        reward = compute_reward(lines_cleared, new_state, not running)
+        reward = compute_reward(new_state, not running, lines_cleared)
         cumulative_reward += reward
         agent.step(state, action, reward, new_state, not running)
         experience = (state, action, reward, new_state, not running)
