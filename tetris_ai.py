@@ -31,10 +31,6 @@ def compute_reward(new_state, game_over, lines_cleared):
     if game_over:
         reward -= 200  # Significant penalty for game over
 
-    # Normalize reward
-    max_penalty = 10 * GRID_WIDTH * (GRID_HEIGHT - 1) + GRID_WIDTH * HEIGHT_THRESHOLD + (GRID_WIDTH - 1) * (GRID_HEIGHT - 1) + 200
-    reward = reward / max_penalty
-
     return reward
 
 
