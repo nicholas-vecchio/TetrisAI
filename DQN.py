@@ -152,13 +152,27 @@ class DQNAgent:
         print(f"Episode length plot saved as {filename}")
 
     def plot_rewards(self, episode_number):
+        average_interval = 50
+
         plt.figure(figsize=(10, 5))
+        
+        # Plot the raw rewards
         plt.plot(self.rewards_per_episode, label='Rewards')
+        
+        # Calculate and plot the average rewards
+        average_rewards = [np.mean(self.rewards_per_episode[max(0, i-average_interval):i+1]) for i in range(len(self.rewards_per_episode))]
+        plt.plot(average_rewards, label=f'Average Reward (last {average_interval} episodes)', linestyle='--')
+        
         plt.xlabel('Episode')
         plt.ylabel('Total Reward')
         plt.title('Reward vs Episode')
         plt.legend()
-        filename = f'{self.graphs_dir}/{episode_number}_reward_plot.png'
+        
+        # Ensure the graphs directory exists
+        if not os.path.exists('graphs'):
+            os.makedirs('graphs')
+        
+        filename = f'graphs/{episode_number}_reward_plot.png'
         plt.savefig(filename)
-        plt.close()
         print(f"Plot saved as {filename}")
+        plt.close()
