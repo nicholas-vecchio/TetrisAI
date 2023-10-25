@@ -10,6 +10,8 @@ from tetris_ai import generate_state, apply_action, compute_reward
 from concurrent.futures import ProcessPoolExecutor
 import copy
 from multiprocessing import Manager
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 from collections import deque
