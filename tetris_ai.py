@@ -1,39 +1,45 @@
 from tetris_pieces import tetrominoes, generate_bag
-from tetris_constants import ACTIONS, GRID_WIDTH, GRID_HEIGHT
+from tetris_constants import GRID_WIDTH, GRID_HEIGHT
 from tetris_grid import is_valid_move, place_tetromino_on_grid
 
 def compute_reward(new_state, game_over, lines_cleared):
     reward = 0
 
-    #TODO: Reduce penalties. Add reward for living. Lessen reward for game over?
+    # Constants
+    LINE_CLEAR_REWARD = 50
+    HOLE_PENALTY = 5
+    GAME_OVER_PENALTY = 200
+    HEIGHT_THRESHOLD = GRID_HEIGHT // 2
+    HEIGHT_PENALTY = 0.5
+    HEIGHT_VARIANCE_PENALTY = 0.5
 
     new_grid_2d = [new_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(new_state['grid']), GRID_WIDTH)]
 
-
     # Exponential award for line clears.
-    reward += 20 * (2 ** lines_cleared - 1) if lines_cleared > 0 else 0
+    reward += LINE_CLEAR_REWARD * (2 ** lines_cleared - 1) if lines_cleared > 0 else 0
 
     # Penalize holes
     holes = sum(1 for x in range(GRID_WIDTH) 
                 for y in range(GRID_HEIGHT-1) 
                 if new_grid_2d[y][x] and not new_grid_2d[y+1][x])
-    reward -= 10 * holes  # Strong penalty for holes
+    reward -= HOLE_PENALTY * holes
 
     # Penalize height
-    HEIGHT_THRESHOLD = GRID_HEIGHT // 2
     blocks_above_threshold = sum(1 for x in range(GRID_WIDTH) for y in range(HEIGHT_THRESHOLD) if new_grid_2d[y][x])
-    reward -=  0.5 * blocks_above_threshold
+    reward -= HEIGHT_PENALTY * blocks_above_threshold
 
     # Penalize column height variance
     column_heights = [max([y for y in range(GRID_HEIGHT) if new_grid_2d[y][x]], default=-1) for x in range(GRID_WIDTH)]
     height_variance_penalty = sum(abs(column_heights[i] - column_heights[i+1]) for i in range(GRID_WIDTH - 1))
-    reward -= 0.5 * height_variance_penalty
+    reward -= HEIGHT_VARIANCE_PENALTY * height_variance_penalty
 
     # Game over penalty
     if game_over:
-        reward -= 300  # Significant penalty for game over
+        reward -= GAME_OVER_PENALTY
 
     return reward
+
+
 
 
 
