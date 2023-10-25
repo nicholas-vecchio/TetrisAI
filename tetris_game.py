@@ -226,10 +226,8 @@ if __name__ == "__main__":
                     
                     agent.epsilon = max(agent.epsilon_min, agent.epsilon_decay*agent.epsilon)
                     epsilons.append(agent.epsilon)
-    agent.plot_rewards(shared_rewards, window_size)
-    # Plot epsilon decay after all episodes are done
-    plt.plot(epsilons)
-    plt.xlabel('Episode')
-    plt.ylabel('Epsilon')
-    plt.title('Exploration Rate Decay')
-    plt.show()
+    agent.plot_rewards()
+    agent.plot_loss()
+    agent.plot_action_distribution()
+    agent.plot_episode_length()
+    agent.plot_epsilon()

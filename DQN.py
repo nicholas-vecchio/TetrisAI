@@ -2,11 +2,10 @@ import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import numpy as np
 from torch.cuda.amp import autocast, GradScaler
-import time
+import os
 
 from qnetwork import DuelingQNetwork
 from replay import ReplayMemory, Transition
@@ -31,6 +30,13 @@ class DQNAgent:
 
         self.rewards_per_episode = []
         self.total_episode_reward = 0
+        self.losses = []
+        self.action_counts = {action: 0 for action in ACTIONS}
+        self.episode_lengths = []
+        
+        self.graphs_dir = 'graphs'
+        if not os.path.exists(self.graphs_dir):
+            os.makedirs(self.graphs_dir)
 
     def act(self, state):
         if random.random() <= self.epsilon:
@@ -51,8 +57,10 @@ class DQNAgent:
             done
         )
         self.total_episode_reward += reward
+        self.action_counts[action] += 1  # Count the action taken
         if done:
             self.rewards_per_episode.append(self.total_episode_reward)
+            self.episode_lengths.append(len(self.memory))  # Store the episode length
             self.total_episode_reward = 0
         if len(self.memory) > self.batch_size:
             transitions = self.memory.sample(self.batch_size)
@@ -82,7 +90,6 @@ class DQNAgent:
                 next_state_values_temp = self.target_network(non_final_next_states).max(1)[0].detach()
             next_state_values[non_final_next_states_mask] = next_state_values_temp.float()
 
-            
             expected_state_action_values = (next_state_values * self.gamma) + reward_batch
             loss = nn.functional.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
         
@@ -93,27 +100,65 @@ class DQNAgent:
         self.scaler.step(self.optimizer)
         self.scaler.update()
 
-    def rolling_average(self, data, window_size):
-        cumsum = [0]
-        for i, x in enumerate(data, 1):
-            cumsum.append(cumsum[i-1] + x)
-            if i >= window_size:
-                moving_avg = (cumsum[i] - cumsum[i-window_size]) / window_size
-                yield moving_avg
+        self.losses.append(loss.item())  # Store the loss value
 
-    def plot_rewards(self, rewards, window_size=100):
+    def plot_loss(self, episode_number):
         plt.figure(figsize=(10, 5))
-        plt.plot(rewards, label='Rewards')
-        plt.plot(list(self.rolling_average(rewards, window_size)), label=f"Rolling avg (window={window_size})", color='red')
+        plt.plot(self.losses, label='Loss')
+        plt.xlabel('Training Step')
+        plt.ylabel('Loss')
+        plt.title('Loss Over Time')
+        plt.legend()
+        filename = f'{self.graphs_dir}/{episode_number}_loss_plot.png'
+        plt.savefig(filename)
+        plt.close()
+        print(f"Loss plot saved as {filename}")
+
+    def plot_epsilon(self, episode_number):
+        plt.figure(figsize=(10, 5))
+        plt.plot(np.linspace(self.epsilon, self.epsilon_min, len(self.rewards_per_episode)), label='Epsilon')
+        plt.xlabel('Episode')
+        plt.ylabel('Epsilon')
+        plt.title('Epsilon Decay Over Episodes')
+        plt.legend()
+        filename = f'{self.graphs_dir}/{episode_number}_epsilon_plot.png'
+        plt.savefig(filename)
+        plt.close()
+        print(f"Epsilon plot saved as {filename}")
+
+    def plot_action_distribution(self, episode_number):
+        plt.figure(figsize=(10, 5))
+        actions, counts = zip(*self.action_counts.items())
+        plt.bar(actions, counts, label='Action Distribution')
+        plt.xlabel('Action')
+        plt.ylabel('Count')
+        plt.title('Action Distribution Over All Episodes')
+        plt.legend()
+        filename = f'{self.graphs_dir}/{episode_number}_action_distribution_plot.png'
+        plt.savefig(filename)
+        plt.close()
+        print(f"Action distribution plot saved as {filename}")
+
+    def plot_episode_length(self, episode_number):
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.episode_lengths, label='Episode Length')
+        plt.xlabel('Episode')
+        plt.ylabel('Length')
+        plt.title('Episode Length Over Time')
+        plt.legend()
+        filename = f'{self.graphs_dir}/{episode_number}_episode_length_plot.png'
+        plt.savefig(filename)
+        plt.close()
+        print(f"Episode length plot saved as {filename}")
+
+    def plot_rewards(self, episode_number):
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.rewards_per_episode, label='Rewards')
         plt.xlabel('Episode')
         plt.ylabel('Total Reward')
         plt.title('Reward vs Episode')
         plt.legend()
-        timestamp = time.strftime("%Y%m%d-%H%M%S")
-        filename = f'reward_plot_{timestamp}.png'
+        filename = f'{self.graphs_dir}/{episode_number}_reward_plot.png'
         plt.savefig(filename)
-        print(f"Plot saved as {filename}")
         plt.close()
-
-
-
+        print(f"Plot saved as {filename}")

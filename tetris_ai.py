@@ -5,7 +5,7 @@ from tetris_grid import is_valid_move, place_tetromino_on_grid
 def compute_reward(new_state, game_over, lines_cleared):
     reward = 0
 
-    #TODO: Reduce penalties.
+    #TODO: Reduce penalties. Add reward for living. Lessen reward for game over?
 
     new_grid_2d = [new_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(new_state['grid']), GRID_WIDTH)]
 
