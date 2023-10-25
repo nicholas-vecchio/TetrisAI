@@ -108,6 +108,7 @@ class DQNAgent:
         plt.ylabel('Total Reward')
         plt.title('Reward vs Episode')
         plt.legend()
-        plt.show()
+        plt.savefig('reward_plot.png')
+
 
 

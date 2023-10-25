@@ -190,7 +190,7 @@ if __name__ == "__main__":
 
     num_episodes = 1000
     parallelism = 4
-    window_size = 100
+    window_size = 1000
     
     manager = Manager()
     shared_rewards = manager.list()
@@ -223,12 +223,10 @@ if __name__ == "__main__":
                         for experience in batch:
                             state, action, reward, new_state, done = experience
                             agent.step(state, action, reward, new_state, done)
-
-                    if episode % 100 == 0 and episode != 0:
-                        agent.plot_rewards(shared_rewards, window_size)
                     
                     agent.epsilon = max(agent.epsilon_min, agent.epsilon_decay*agent.epsilon)
                     epsilons.append(agent.epsilon)
+    agent.plot_rewards(shared_rewards, window_size)
     # Plot epsilon decay after all episodes are done
     plt.plot(epsilons)
     plt.xlabel('Episode')
