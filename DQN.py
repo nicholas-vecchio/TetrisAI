@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from torch.cuda.amp import autocast, GradScaler
+import time
 
 from qnetwork import DuelingQNetwork
 from replay import ReplayMemory, Transition
@@ -108,7 +109,11 @@ class DQNAgent:
         plt.ylabel('Total Reward')
         plt.title('Reward vs Episode')
         plt.legend()
-        plt.savefig('reward_plot.png')
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        filename = f'reward_plot_{timestamp}.png'
+        plt.savefig(filename)
+        print(f"Plot saved as {filename}")
+        plt.close()
 
 
 
