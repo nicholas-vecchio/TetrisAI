@@ -6,12 +6,12 @@ def compute_reward(new_state, game_over, lines_cleared):
     reward = 0
 
     # Constants
-    LINE_CLEAR_REWARD = 50
-    HOLE_PENALTY = 5
-    GAME_OVER_PENALTY = 200
+    LINE_CLEAR_REWARD = 100
+    HOLE_PENALTY = 10
+    GAME_OVER_PENALTY = 300
     HEIGHT_THRESHOLD = GRID_HEIGHT // 2
-    HEIGHT_PENALTY = 0.5
-    HEIGHT_VARIANCE_PENALTY = 0.5
+    HEIGHT_PENALTY = 1
+    HEIGHT_VARIANCE_PENALTY = 0.3
 
     new_grid_2d = [new_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(new_state['grid']), GRID_WIDTH)]
 
