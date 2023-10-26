@@ -1,8 +1,7 @@
 import pygame
 import random
 import torch
-from tetris_constants import SHOW_VISUALS, screen, WHITE, COLORS, font, SCREEN_WIDTH, clock, ACTIONS, GRID_HEIGHT, MOVE_ACTIONS, BATCH_SIZE
-from tetris_rendering import draw_grid, draw_grid_background, draw_held_tetromino_box, draw_next_tetromino_box, draw_tetromino
+from tetris_constants import ACTIONS,  MOVE_ACTIONS, BATCH_SIZE
 from tetris_grid import GRID_WIDTH, is_valid_move, place_tetromino_on_grid, clear_complete_lines, reset_grid, grid
 from tetris_pieces import tetrominoes, generate_bag
 from DQN import DQNAgent
@@ -39,8 +38,6 @@ def apply_move_action(tetromino, action, x, y, rotation):
     return False
 
 def main(agent, shared_experience):
-    if(SHOW_VISUALS):
-        pygame.init()
     running = True
     bag = generate_bag()
     current_tetromino = bag.pop()
@@ -59,10 +56,6 @@ def main(agent, shared_experience):
     reset_grid()
 
     while running:
-        if SHOW_VISUALS:
-            screen.fill(WHITE)
-            draw_grid_background()
-
         # AI Decision Making
         state = generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held, held_tetromino)
         valid_action = None
@@ -86,11 +79,6 @@ def main(agent, shared_experience):
         new_state = apply_action(current_tetromino, action, state, next_tetromino, bag)
         has_held = new_state["has_held"]
         current_tetromino, tetromino_x, tetromino_y, current_rotation, held_tetromino = new_state['tetromino'], new_state['tetromino_position'][0], new_state['tetromino_position'][1], new_state['tetromino_rotation'], new_state['held_tetromino']
-
-        if SHOW_VISUALS:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
 
         current_time = pygame.time.get_ticks()
         if current_time - fall_timer > fall_delay:
@@ -124,31 +112,12 @@ def main(agent, shared_experience):
         elif lines_cleared == 4:
             score += (1200 * (level + 1))
 
-        if SHOW_VISUALS:
-            draw_tetromino(current_tetromino[current_rotation], tetromino_x, tetromino_y, COLORS[tetrominoes.index(current_tetromino) % len(COLORS)])
-            draw_grid()
-            draw_held_tetromino_box(held_tetromino)
-            draw_next_tetromino_box(next_tetromino)
-
-        score_text = font.render(f'Score: {score}', True, (0, 0, 0))
-        score_pos = (SCREEN_WIDTH - score_text.get_width() - 60, 10)
-
         reward = compute_reward(new_state, not running, lines_cleared)
         cumulative_reward += reward
         num_steps += 1
         agent.step(state, action, reward, new_state, not running)
         experience = (state, action, reward, new_state, not running)
         shared_experience.append(experience)
-
-        reward_text = font.render(f'Reward: {reward}', True, (0, 0, 0))
-        rewards_pos = (SCREEN_WIDTH - score_text.get_width() - 60, 50)
-        if(SHOW_VISUALS):
-            screen.blit(reward_text, rewards_pos)
-            screen.blit(score_text, score_pos)
-
-        if SHOW_VISUALS:
-            pygame.display.flip()
-            clock.tick(60)
 
     avg_reward = cumulative_reward/ num_steps if num_steps != 0 else 0
 
@@ -226,8 +195,9 @@ if __name__ == "__main__":
                     
                     agent.epsilon = max(agent.epsilon_min, agent.epsilon_decay*agent.epsilon)
                     epsilons.append(agent.epsilon)
-    agent.plot_rewards()
-    agent.plot_loss()
-    agent.plot_action_distribution()
-    agent.plot_episode_length()
-    agent.plot_epsilon()
+    end_episode = start_episode+num_episodes
+    agent.plot_rewards(end_episode)
+    agent.plot_loss(end_episode)
+    agent.plot_action_distribution(end_episode)
+    agent.plot_episode_length(end_episode)
+    agent.plot_epsilon(end_episode)
