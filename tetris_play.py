@@ -20,13 +20,11 @@ from collections import deque
 # TODO: Re-add soft drop
 # TODO: Profiling
 # TODO: Enable use of tensor cores
+# TODO: Fix double screen creation
 
 SAVE_INTERVAL = 50
 CHECKPOINT_PATH = "CHECKPOINTS"
 MAX_MEM = 100000
-
-import pygame
-pygame.init()
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Tetris AI")
@@ -45,7 +43,6 @@ def apply_move_action(tetromino, action, x, y, rotation):
     return False
 
 def main(agent, shared_experience):
-    pygame.init()
     clock = pygame.time.Clock()
     running = True
     bag = generate_bag()
