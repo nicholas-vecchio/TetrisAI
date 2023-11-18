@@ -2,7 +2,7 @@ from tetris_pieces import tetrominoes, generate_bag
 from tetris_constants import GRID_WIDTH, GRID_HEIGHT
 from tetris_grid import is_valid_move, place_tetromino_on_grid
 
-def compute_reward(new_state, game_over, lines_cleared):
+'''def compute_reward(new_state, game_over, lines_cleared):
     reward = 0
 
     # Constants
@@ -38,9 +38,32 @@ def compute_reward(new_state, game_over, lines_cleared):
         reward -= GAME_OVER_PENALTY
 
     return reward
+    '''
 
+# Simplified compute reward for testing
 
+def compute_reward(new_state, game_over, lines_cleared):
+    reward = 0
 
+    # Constants
+    LINE_CLEAR_REWARD = 5
+    HOLE_PENALTY = 0.1
+
+    new_grid_2d = [new_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(new_state['grid']), GRID_WIDTH)]
+
+    # Reward for line clears
+    reward += LINE_CLEAR_REWARD * lines_cleared
+
+    # Penalize holes
+    holes = sum(1 for x in range(GRID_WIDTH) 
+                for y in range(GRID_HEIGHT - 1) 
+                if new_grid_2d[y][x] == 0 and new_grid_2d[y + 1][x] != 0)
+    reward -= HOLE_PENALTY * holes
+
+    if game_over:
+        reward -= 10
+
+    return reward
 
 
 def generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held, held_tetromino):    
