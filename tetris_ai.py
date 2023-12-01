@@ -40,28 +40,43 @@ from tetris_grid import is_valid_move, place_tetromino_on_grid
     return reward
     '''
 
-# Simplified compute reward for testing
-
+# Different compute reward for testing
 def compute_reward(new_state, game_over, lines_cleared):
     reward = 0
 
     # Constants
-    LINE_CLEAR_REWARD = 5
-    HOLE_PENALTY = 0.1
+    LINE_CLEAR_REWARD = [0, 5, 25, 50, 100]  # Indexed by number of lines cleared
+    HOLE_PENALTY = 0.05
+    HEIGHT_PENALTY = 0.02
+    BALANCE_REWARD = 0.03
+    GAME_OVER_PENALTY = 20
+    HEIGHT_THRESHOLD = GRID_HEIGHT // 2
+    SURVIVAL_REWARD = 0.1
 
     new_grid_2d = [new_state['grid'][i:i+GRID_WIDTH] for i in range(0, len(new_state['grid']), GRID_WIDTH)]
+    column_heights = [max([y for y in range(GRID_HEIGHT) if new_grid_2d[y][x] != 0] + [0]) for x in range(GRID_WIDTH)]
 
     # Reward for line clears
-    reward += LINE_CLEAR_REWARD * lines_cleared
+    reward += LINE_CLEAR_REWARD[lines_cleared]
 
     # Penalize holes
-    holes = sum(1 for x in range(GRID_WIDTH) 
-                for y in range(GRID_HEIGHT - 1) 
-                if new_grid_2d[y][x] == 0 and new_grid_2d[y + 1][x] != 0)
+    holes = sum(1 for x in range(GRID_WIDTH) for y in range(GRID_HEIGHT - 1) if new_grid_2d[y][x] == 0 and new_grid_2d[y + 1][x] != 0)
     reward -= HOLE_PENALTY * holes
 
+    # Penalize height
+    blocks_above_threshold = sum(1 for x in range(GRID_WIDTH) for y in range(HEIGHT_THRESHOLD) if new_grid_2d[y][x])
+    reward -= HEIGHT_PENALTY * blocks_above_threshold
+
+    # Reward for balancing the board
+    avg_height = sum(column_heights) / GRID_WIDTH
+    balance = sum(abs(h - avg_height) for h in column_heights)
+    reward += BALANCE_REWARD * (GRID_HEIGHT - balance)
+
+    # Reward for survival
+    reward += SURVIVAL_REWARD
+
     if game_over:
-        reward -= 10
+        reward -= GAME_OVER_PENALTY
 
     return reward
 

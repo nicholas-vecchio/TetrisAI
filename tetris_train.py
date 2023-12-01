@@ -137,7 +137,7 @@ def latest_checkpoint():
 def episode_wrapper(agent, episode, shared_rewards, shared_experience):    
     try:
         score, reward, num_steps = main(agent, shared_experience)  # Pass shared experience to main function
-        print(f"Episode {episode + 1} Score: {score}, Average Reward: {reward}, Num Steps: {num_steps}")
+        print(f"Episode {episode + 1} Score: {score}, Num Steps: {num_steps}")
         shared_rewards.append(reward)
         return (score, episode)
     except Exception as e:

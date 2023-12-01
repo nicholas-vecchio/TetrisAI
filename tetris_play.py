@@ -42,7 +42,7 @@ def apply_move_action(tetromino, action, x, y, rotation):
         return True
     return False
 
-def main(agent, shared_experience):
+def main(agent):
     clock = pygame.time.Clock()
     running = True
     bag = generate_bag()
@@ -120,12 +120,10 @@ def main(agent, shared_experience):
             score += (1200 * (level + 1))
 
         reward = compute_reward(new_state, not running, lines_cleared)
+        print(reward)
         cumulative_reward += reward
         num_steps += 1
         agent.step(state, action, reward, new_state, not running)
-        experience = (state, action, reward, new_state, not running)
-        shared_experience.append(experience)
-
         # Visualization
         screen.fill((255, 255, 255))  # Fill the screen with white background
         draw_grid_background(screen)
@@ -151,20 +149,11 @@ def latest_checkpoint():
 
     return max(all_checkpoints, key=lambda x: int(x.split('_')[2].split('.')[0]))
 
-def episode_wrapper(agent, episode, shared_rewards, shared_experience):    
-    try:
-        score, reward, num_steps = main(agent, shared_experience)  # Pass shared experience to main function
-        print(f"Episode {episode + 1} Score: {score}, Average Reward: {reward}, Num Steps: {num_steps}")
-        shared_rewards.append(reward)
-        return (score, episode)
-    except Exception as e:
-        print(f"Error in episode {episode}:", e)
-        return None
-
 if __name__ == "__main__":
     agent = DQNAgent()
-
+    pygame.init()
     # Try to load from the latest checkpoint
+
     checkpoint_filename = latest_checkpoint()
     start_episode = 0
     if checkpoint_filename:
@@ -174,29 +163,18 @@ if __name__ == "__main__":
         start_episode = int(checkpoint_filename.split('_')[2].split('.')[0]) + 1  # extract episode number and increment
         agent.epsilon = max(agent.epsilon_min, agent.epsilon * (agent.epsilon_decay ** start_episode))
 
-    num_episodes = 1000
-    parallelism = 4
-    window_size = 1000
-    
-    manager = Manager()
-    shared_rewards = manager.list()
-    shared_experience = manager.list(deque(maxlen=MAX_MEM))   
-    epsilons = []
-    batch_size = BATCH_SIZE
+    episode = start_episode
 
-    agent_state_dict = agent.qnetwork.state_dict()
-    result = episode_wrapper(agent=agent, episode=start_episode, shared_rewards=shared_rewards, shared_experience=shared_experience)
-    if result:
-        score, episode = result
+    try:
+        score, reward, num_steps = main(agent)
+        print(f"Episode {episode + 1} Score: {score}, Average Reward: {reward}, Num Steps: {num_steps}")
         
-        # Ensure checkpoint directory exists
-        if not os.path.exists(CHECKPOINT_PATH):
-            os.makedirs(CHECKPOINT_PATH)
-        
-        # Save checkpoint
+        # Checkpoint saving logic
         if episode % SAVE_INTERVAL == 0:
             checkpoint_filename = f"tetris_checkpoint_{episode}.pth"
             checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_filename)
             torch.save(agent.qnetwork.state_dict(), checkpoint_path)
-        
+    except Exception as e:
+        print(f"Error in episode {episode}:", e)
+
     pygame.quit()
