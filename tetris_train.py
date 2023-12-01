@@ -14,6 +14,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 from collections import deque
+import time
 
 # TODO: add scoring for hard drops/soft drops too maybe
 # TODO: Re-add soft drop
@@ -136,8 +137,11 @@ def latest_checkpoint():
 
 def episode_wrapper(agent, episode, shared_rewards, shared_experience):    
     try:
+        start_time = time.time()
         score, reward, num_steps = main(agent, shared_experience)  # Pass shared experience to main function
-        print(f"Episode {episode + 1} Score: {score}, Num Steps: {num_steps}")
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"Episode {episode + 1} Score: {score}, Num Steps: {num_steps}, Execution Time: {execution_time} seconds")        
         shared_rewards.append(reward)
         return (score, episode)
     except Exception as e:
@@ -160,15 +164,17 @@ if __name__ == "__main__":
     num_episodes = 1000
     parallelism = 4
     window_size = 1000
-    
+
     manager = Manager()
     shared_rewards = manager.list()
-    shared_experience = manager.list(deque(maxlen=MAX_MEM))   
+    shared_experience = manager.list(deque(maxlen=MAX_MEM))
     epsilons = []
     batch_size = BATCH_SIZE
 
+    start_time_total = time.time()  # Record the start time
+
     with ProcessPoolExecutor(max_workers=parallelism) as executor:
-        for i in range(start_episode, start_episode + num_episodes, parallelism): # Start from the last episode
+        for i in range(start_episode, start_episode + num_episodes, parallelism):  # Start from the last episode
             agent_state_dict = agent.qnetwork.state_dict()
             futures = [executor.submit(episode_wrapper, agent=agent, episode=i+j, shared_rewards=shared_rewards, shared_experience=shared_experience) for j in range(parallelism)]
 
@@ -176,26 +182,31 @@ if __name__ == "__main__":
                 result = future.result()
                 if result:
                     score, episode = result
-                    
+
                     # Ensure checkpoint directory exists
                     if not os.path.exists(CHECKPOINT_PATH):
                         os.makedirs(CHECKPOINT_PATH)
-                    
+
                     # Save checkpoint
-                    if(episode % SAVE_INTERVAL == 0):
+                    if episode % SAVE_INTERVAL == 0:
                         checkpoint_filename = f"tetris_checkpoint_{episode}.pth"
                         checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_filename)
                         torch.save(agent.qnetwork.state_dict(), checkpoint_path)
-                    
+
                     if len(shared_experience) >= batch_size:
                         batch = random.sample(list(shared_experience), batch_size)
                         for experience in batch:
                             state, action, reward, new_state, done = experience
                             agent.step(state, action, reward, new_state, done)
-                    
-                    agent.epsilon = max(agent.epsilon_min, agent.epsilon_decay*agent.epsilon)
+
+                    agent.epsilon = max(agent.epsilon_min, agent.epsilon_decay * agent.epsilon)
                     epsilons.append(agent.epsilon)
-    end_episode = start_episode+num_episodes
+
+    end_time_total = time.time()  # Record the end time
+    total_execution_time = end_time_total - start_time_total
+    print(f"Total Execution Time: {total_execution_time} seconds")
+
+    end_episode = start_episode + num_episodes
     agent.plot_rewards(end_episode)
     agent.plot_loss(end_episode)
     agent.plot_action_distribution(end_episode)
