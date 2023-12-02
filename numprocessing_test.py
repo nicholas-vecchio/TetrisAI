@@ -128,8 +128,9 @@ def main(agent, shared_experience):
             shared_experience.extend(list(local_batch))
             local_batch.clear()
     
-    if(local_batch):
-        shared_experience.append(list(local_batch))
+    if local_batch:
+        shared_experience.extend(list(local_batch))  # Use extend to add all remaining experiences
+
 
     avg_reward = cumulative_reward/ num_steps if num_steps != 0 else 0
 
@@ -223,7 +224,7 @@ if __name__ == "__main__":
         agent.epsilon = max(agent.epsilon_min, agent.epsilon * (agent.epsilon_decay ** start_episode))
 
     num_episodes = 50
-    min_parallelism = 8
+    min_parallelism = 6
     max_parallelism = 40  # Set the maximum number of processes to test
 
     execution_times = []

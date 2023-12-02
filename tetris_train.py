@@ -126,10 +126,10 @@ def main(agent, shared_experience):
         if len(local_batch) >= BATCH_SIZE:
             shared_experience.extend(list(local_batch))
             local_batch.clear()
-            
-    # After the loop, add any remaining experiences in the local batch to shared_experience
+
     if local_batch:
-        shared_experience.extend(list(local_batch))
+        shared_experience.extend(list(local_batch))  # Use extend to add all remaining experiences
+
 
     avg_reward = cumulative_reward/ num_steps if num_steps != 0 else 0
 
@@ -207,9 +207,9 @@ if __name__ == "__main__":
                     # Training the agent after accumulating experiences
                     if len(shared_experience) >= batch_size:
                         batch = random.sample(list(shared_experience), batch_size)
-                        for experience in batch:
-                            state, action, reward, new_state, done = experience
-                            agent.step(state, action, reward, new_state, done)
+                    for experience in batch:
+                        print(f"Debug: {experience}, Length: {len(experience)}")  # Add this line for debugging
+                        state, action, reward, new_state, done = experience
 
                     agent.epsilon = max(agent.epsilon_min, agent.epsilon_decay * agent.epsilon)
                     epsilons.append(agent.epsilon)
