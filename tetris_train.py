@@ -56,6 +56,8 @@ def main(agent, shared_experience):
     num_steps = 0
     reset_grid()
 
+    local_batch = deque(maxlen=BATCH_SIZE)
+
     while running:
         # AI Decision Making
         state = generate_state(grid, current_tetromino, tetromino_x, tetromino_y, current_rotation, next_tetromino, has_held, held_tetromino)
@@ -118,7 +120,16 @@ def main(agent, shared_experience):
         num_steps += 1
         agent.step(state, action, reward, new_state, not running)
         experience = (state, action, reward, new_state, not running)
-        shared_experience.append(experience)
+        local_batch.append(experience)
+
+        # When the local batch is full, extend the shared experience and clear the local batch
+        if len(local_batch) >= BATCH_SIZE:
+            shared_experience.extend(list(local_batch))
+            local_batch.clear()
+            
+    # After the loop, add any remaining experiences in the local batch to shared_experience
+    if local_batch:
+        shared_experience.extend(list(local_batch))
 
     avg_reward = cumulative_reward/ num_steps if num_steps != 0 else 0
 
@@ -193,6 +204,7 @@ if __name__ == "__main__":
                         checkpoint_path = os.path.join(CHECKPOINT_PATH, checkpoint_filename)
                         torch.save(agent.qnetwork.state_dict(), checkpoint_path)
 
+                    # Training the agent after accumulating experiences
                     if len(shared_experience) >= batch_size:
                         batch = random.sample(list(shared_experience), batch_size)
                         for experience in batch:
@@ -209,6 +221,5 @@ if __name__ == "__main__":
     end_episode = start_episode + num_episodes
     agent.plot_rewards(end_episode)
     agent.plot_loss(end_episode)
-    agent.plot_action_distribution(end_episode)
     agent.plot_episode_length(end_episode)
     agent.plot_epsilon(end_episode)
